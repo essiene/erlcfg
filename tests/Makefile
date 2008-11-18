@@ -1,0 +1,22 @@
+EBIN_DIR= ../ebin
+INCLUDE_DIR= ../include
+
+ERLC_FLAGS= -pa $(EBIN_DIR) -I $(INCLUDE_DIR) -W -o $(EBIN_DIR)
+
+$(EBIN_DIR)/%.beam: %.erl
+	erlc $(ERLC_FLAGS) $<
+
+
+TESTS=test_erlcfg_lexer
+
+
+test: compile
+	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_lexer test -s init stop
+
+
+compile: ${TESTS:%=$(EBIN_DIR)/%.beam}
+	@echo all done
+
+clean:
+	@rm -f *.beam
+	@rm -f erl_crash.dump
