@@ -6,12 +6,13 @@ integer float atom string '=' ';'.
 
 Rootsymbol assignments.
 
-assignments -> assignments assignment : ['$1', '$2'].
-assignments -> assignment : '$1'.
+assignments -> assignment ';' assignments : ['$1', '$3'].
+assignments -> assignment : ['$1'].
+assignments -> '$empty' : [].
 
-assignment  -> key '=' value ';' : {set, '$1', '$3'}.
+assignment  -> key '=' value : {set, '$1', '$3'}.
 
-key ->  atom        : {key, get_value('$1')}.
+key ->  atom        : get_value('$1').
 value -> data       : {val, '$1'}. 
 
 data -> integer    : get_value('$1').
