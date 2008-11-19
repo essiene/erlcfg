@@ -17,14 +17,21 @@ Rules.
 (\+|-)?{DIGIT}+(\.{DIGIT}+([e|E](\+|-)?{DIGIT}+)?)? : 
     {token, {float, TokenLine, list_to_float(TokenChars)}}.
 
+(true|false) :
+    {token, {bool, TokenLine, list_to_atom(TokenChars)}}.
+
 ({LETTER}|_){ALPHANUM}* : 
     {token, {atom, TokenLine, list_to_atom(TokenChars)}}.
 
+\$({LETTER}|_){ALPHANUM}*(\.({LETTER}|_){ALPHANUM}*)* : 
+    {token, {variable, TokenLine, list_to_atom(peell(TokenChars, TokenLen, 1))}}.
+
 '({ALPHANUM}|{PUNCT_ATOM})*' : 
-    {token, {atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
+    {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
 
 "({ALPHANUM}|{PUNCT_STRING})*" :
     {token, {string, TokenLine, peel(TokenChars, TokenLen, 1)}}.
+
 
 = :
     {token, {'=', TokenLine}}.
@@ -48,3 +55,6 @@ Erlang code.
 
 peel(List, ListLen, Depth) ->
     lists:sublist(List, Depth+1, ListLen - (Depth+1)).
+
+peell(List, ListLen, Depth) ->
+    lists:sublist(List, Depth+1, ListLen).

@@ -3,6 +3,17 @@
 -export([spaces/0]).
 
 
+
+single_bool_test() ->
+    ?assertEqual({ok, [{bool, 1, true}], 1}, erlcfg_lexer:string("true")),
+    ?assertEqual({ok, [{bool, 1, false}], 1}, erlcfg_lexer:string("false")).
+
+multiple_bool_test() ->
+    ?assertEqual({ok, [{bool, 1, true}, {bool, 1, true}, {bool, 1, true}], 1}, erlcfg_lexer:string("true true true")),
+    ?assertEqual({ok, [{bool, 1, false}, {bool, 1, false}, {bool, 1, false}], 1}, erlcfg_lexer:string("false false false")),
+    ?assertEqual({ok, [{bool, 1, true}, {bool, 2, false}, {bool, 2, true}, {bool, 2, false}, {bool, 3, false}], 3}, erlcfg_lexer:string("true\nfalse true false\nfalse")).
+
+
 single_integer_test() ->
     ?assertEqual({ok, [{integer, 1, 1}], 1}, erlcfg_lexer:string("1")),
     ?assertEqual({ok, [{integer, 1, 5}], 1}, erlcfg_lexer:string("+5")),
@@ -31,15 +42,15 @@ multiple_float_test() ->
 
 atom_test() ->
     ?assertEqual({ok, [{atom, 1, foo}], 1}, erlcfg_lexer:string("foo")),
-    ?assertEqual({ok, [{atom, 1, foo}], 1}, erlcfg_lexer:string("'foo'")),
-    ?assertEqual({ok, [{atom, 1, '+1.0e-10'}], 1}, erlcfg_lexer:string("'+1.0e-10'")),
+    ?assertEqual({ok, [{quoted_atom, 1, foo}], 1}, erlcfg_lexer:string("'foo'")),
+    ?assertEqual({ok, [{quoted_atom, 1, '+1.0e-10'}], 1}, erlcfg_lexer:string("'+1.0e-10'")),
     ?assertEqual({ok, [{atom, 1, 'foo-dot-com'}], 1}, erlcfg_lexer:string("foo-dot-com")),
     ?assertEqual({ok, [{atom, 1, '_foo-dot_com'}], 1}, erlcfg_lexer:string("_foo-dot_com")).
 
 multiple_atom_test() ->
     ?assertEqual({ok, [{atom, 1, foo}, {atom, 1, bar}, {atom, 1, baz}], 1}, erlcfg_lexer:string("foo bar baz")),
-    ?assertEqual({ok, [{atom, 1, foo}, {atom, 1, bar}, {atom, 2, baz}], 2}, erlcfg_lexer:string("'foo' bar\n\tbaz")),
-    ?assertEqual({ok, [{atom, 1, foo}, {atom, 1, bar}, {atom, 2, baz}], 2}, erlcfg_lexer:string("'foo' 'bar'\n\t'baz'")).
+    ?assertEqual({ok, [{quoted_atom, 1, foo}, {atom, 1, bar}, {atom, 2, baz}], 2}, erlcfg_lexer:string("'foo' bar\n\tbaz")),
+    ?assertEqual({ok, [{quoted_atom, 1, foo}, {quoted_atom, 1, bar}, {quoted_atom, 2, baz}], 2}, erlcfg_lexer:string("'foo' 'bar'\n\t'baz'")).
 
 string_test() ->
     ?assertEqual({ok, [{string, 1, "foo"}], 1}, erlcfg_lexer:string("\"foo\"")),
@@ -66,6 +77,15 @@ string_with_spaces_test() ->
                 {string, 1, "and \na \nnew line"}
             ], 3},
         erlcfg_lexer:string("\"foo with bar\" \"with a\ttab\" \"and \na \nnew line\"")).
+
+single_variable_test() ->
+    ?assertEqual({ok, [{variable, 1, common.one}], 1}, erlcfg_lexer:string("$common.one")),
+    ?assertEqual({ok, [{variable, 1, foo.bar}], 1}, erlcfg_lexer:string("$foo.bar")).
+
+multiple_variable_test() ->
+    ?assertEqual({ok, [{variable, 1, foo.one}, {variable, 1, foo.two}, {variable, 1, foo.three}], 1}, erlcfg_lexer:string("$foo.one $foo.two $foo.three")),
+    ?assertEqual({ok, [{variable, 1, moo}, {variable, 1, one.two.three.four}, {variable, 1, 'foobar_.baz-bar'}], 1}, erlcfg_lexer:string("$moo $one.two.three.four $foobar_.baz-bar")).
+
 
 spaces() -> 
     io:format("~p~n", [erlcfg_lexer:string("\"foo with bar\" \"with a\ttab\" \"and\na \nnew line\"")]).
