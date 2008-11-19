@@ -10,7 +10,7 @@ get([], ProcessedKeys, Value) ->
 
 get([H | Rest], ProcessedKeys, TupleList) ->
     case lists:keysearch(H, 1, TupleList) of
-        {value, NestedValue} ->
+        {value, {H, NestedValue}} ->
             get(Rest, [H | ProcessedKeys], NestedValue);
         false ->
             {error, {not_found, lists:reverse(ProcessedKeys)}}
