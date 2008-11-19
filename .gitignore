@@ -1,2 +1,6 @@
 ebin
 *.beam
+src/*_lexer.erl
+src/*_parser.erl
+diff
+commit

@@ -4,13 +4,11 @@ ERLC=erlc
 ERLC_FLAGS= -W -I $(INCLUDE_DIR) -o $(EBIN_DIR)
 ERL=erl -noshell
 
-$(EBIN_DIR)/%.erl: %.xrl
-	@mkdir -p $(EBIN_DIR)
-	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".xrl\"), leex:file(Filename, [{outdir, \"$(EBIN_DIR)\"}]), halt()."
+%.erl: %.xrl
+	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".xrl\"), leex:file(Filename), halt()."
 
-$(EBIN_DIR)/%.beam: $(EBIN_DIR)/%.erl
-	@mkdir -p $(EBIN_DIR)
-	$(ERLC) $(ERLC_FLAGS) $<
+%.erl: %.yrl
+	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".xrl\"), yecc:file(Filename), halt()."
 
 $(EBIN_DIR)/%.beam: %.erl
 	@mkdir -p $(EBIN_DIR)
@@ -19,15 +17,18 @@ $(EBIN_DIR)/%.beam: %.erl
 
 LEEX_OBJECTS=erlcfg_lexer
 
-YEEC_OBJECTS=erlcfg_parser
+YECC_OBJECTS=erlcfg_parser
 
-OBJECTS=erlcfg_lexer
+OBJECTS=erlcfg_lexer \
+		erlcfg_parser
 
 
-all: ${LEEX_OBJECTS:%=$(EBIN_DIR)/%.erl} ${OBJECTS:%=$(EBIN_DIR)/%.beam}
+all: ${LEEX_OBJECTS:%=%.erl} ${YECC_OBJECTS:%=%.erl} ${OBJECTS:%=$(EBIN_DIR)/%.beam}
 	@echo All Done
 
 
 clean:
+	@rm -f *_lexer.erl
+	@rm -f *_parser.erl
 	@rm -rf $(EBIN_DIR)
 	@rm -f erl_crash.dump

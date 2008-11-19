@@ -26,6 +26,21 @@ Rules.
 "({ALPHANUM}|{PUNCT_STRING})*" :
     {token, {string, TokenLine, peel(TokenChars, TokenLen, 1)}}.
 
+= :
+    {token, {'=', TokenLine}}.
+
+; :
+    {token, {';', TokenLine}}.
+
+\( :
+    {token, {'(', TokenLine}}.
+
+\) :
+    {token, {')', TokenLine}}.
+
+\, :
+    {token, {',', TokenLine}}.
+
 {WS}+ : 
     skip_token.
 

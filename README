@@ -1,0 +1,51 @@
+# Comment
+
+common = {
+    appserver = "www.appserver.com";
+    port = {
+        ami = 5038;
+        rest = 9119;
+    };
+};
+
+general = {
+    listen = ("192.168.5.3", "168.99.5.23");
+    port = $common.port.rest;
+
+    wait = {
+        short = 2;
+        long = 10;
+    };
+};
+
+ami = {
+    host = $common.appserver;
+    port = $common.port.ami;
+    username =  "obelisk";
+    secret = "obelisk";
+};
+
+callentry = {
+    rttl = 5;
+    qttl = 60;
+
+    requeue = {
+        priority = high;
+    };
+};
+
+
+
+# use case:
+# Create new config object:
+#
+# Config = erlcfg:new(Filename).
+#
+# Get config values, including nested values:
+#
+# Config:get(general.listen).
+# Config:get(ami.host, "localhost").
+#
+#
+# Eventually we should also be able to set:
+# Config:set(callentry.requeue.priority, high).

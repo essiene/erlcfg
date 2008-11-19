@@ -7,11 +7,12 @@ $(EBIN_DIR)/%.beam: %.erl
 	erlc $(ERLC_FLAGS) $<
 
 
-TESTS=test_erlcfg_lexer
+TESTS=test_erlcfg_lexer test_erlcfg_parser
 
 
 test: compile
 	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_lexer test -s init stop
+	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_parser test -s init stop
 
 
 compile: ${TESTS:%=$(EBIN_DIR)/%.beam}
