@@ -20,7 +20,8 @@ LEEX_OBJECTS=erlcfg_lexer
 YECC_OBJECTS=erlcfg_parser
 
 OBJECTS=erlcfg_lexer \
-		erlcfg_parser
+		erlcfg_parser \
+		erlcfg
 
 
 all: ${LEEX_OBJECTS:%=%.erl} ${YECC_OBJECTS:%=%.erl} ${OBJECTS:%=$(EBIN_DIR)/%.beam}
