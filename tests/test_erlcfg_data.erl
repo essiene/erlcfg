@@ -4,15 +4,15 @@
 
 get_onelevel_single_test() ->
     Data = [
-        {"foo", 5}
+        {foo, 5}
     ],
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(foo)).
 
 get_onelevel_dual_test() ->
     Data = [
-        {"foo", 5}, 
-        {"bar", baz}
+        {foo, 5}, 
+        {bar, baz}
     ],
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(foo)),
@@ -20,9 +20,9 @@ get_onelevel_dual_test() ->
 
 get_onelevel_multi_test() ->
     Data = [
-        {"int", 5}, 
-        {"atom", baz}, 
-        {"string", "A string"}
+        {int, 5}, 
+        {atom, baz}, 
+        {string, "A string"}
     ],
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(int)),
@@ -32,10 +32,10 @@ get_onelevel_multi_test() ->
 
 get_twolevels_test() ->
     Data = [
-        {"foo", 
+        {foo, 
             [
-                {"int", 5}, 
-                {"float", 5.0}
+                {int, 5}, 
+                {float, 5.0}
             ]
         }
     ],
@@ -45,32 +45,32 @@ get_twolevels_test() ->
 
 get_multi_level_nested_test() ->
     Data = [
-        {"one", 
+        {one, 
             [ 
-                {"one", 11}, 
-                {"two", 12},
-                {"three", 
+                {one, 11}, 
+                {two, 12},
+                {three, 
                     [ 
-                        {"one", 131}, 
-                        {"two", 132} 
+                        {one, 131}, 
+                        {two, 132} 
                     ]
                 }
             ]
         },
 
-        {"two", 
+        {two, 
             [ 
-                {"one", 
+                {one, 
                     [ 
-                        {"one", 211}, 
-                        {"two", 212} 
+                        {one, 211}, 
+                        {two, 212} 
                     ]
                 },
 
-                {"two", 
+                {two, 
                     [ 
-                        {"one", 221}, 
-                        {"two", 222} 
+                        {one, 221}, 
+                        {two, 222} 
                     ]
                 }
             ]
