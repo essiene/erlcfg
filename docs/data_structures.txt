@@ -1,0 +1,17 @@
+Current parse tree structure.
+
+[command,
+    [command,
+        [command, []]
+    ]
+]
+
+For now command is:
+    {set, Key, {val, Value}}
+
+Eventually we'll have:
+    {set, Key, {var, VarName}}
+
+    which will expand to:
+    {set, Key, {val, {get, VarName}}}
+
