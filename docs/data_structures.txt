@@ -1,4 +1,5 @@
 Current parse tree structure.
+-----------------------------
 
 [command,
     [command,
@@ -6,12 +7,19 @@ Current parse tree structure.
     ]
 ]
 
-For now command is:
-    {set, Key, {val, Value}}
+Interpreter/VM Commands
+-----------------------
 
-Eventually we'll have:
-    {set, Key, {var, VarName}}
+Command => {set, Addr, Command} |
+           {get, Addr, _}  |
+           {val, Data, _}
 
-    which will expand to:
-    {set, Key, {val, {get, VarName}}}
+{set, Addr, Command} : evaluates Command and sets the content of Addr to that value. It then returns that value.
+                       and Addr can be set only once.
 
+{get, Addr, _} : returns the value stored at Addr.
+
+{val, Data, _} : returns Data, 
+
+Addr => atom
+Data => atom | quoted_atom | bool | integer | float | string
