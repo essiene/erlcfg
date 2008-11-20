@@ -1,38 +1,41 @@
 -module(interp_data).
 -export([
-        get/2,
-        get/3
+        new/0,
+        find/2,
+        find/3,
+        get/2
     ]).
 
 
-get(NestedTupleList, Key) when is_atom(Key) ->
-    StrKey = atom_to_list(Key),
-    StrKeyList = string:tokens(StrKey, "."),
-    KeyList = lists:map(
-        fun(Item) -> list_to_atom(Item) end,
-        StrKeyList
-    ),
-    
-    case get(KeyList, [], NestedTupleList) of
-        {value, {KeyList, Value}} -> 
+new() ->
+    [].
+
+
+get(IData, Key) when is_atom(Key) ->
+    case find(IData, Key) of
+        {node, Value} ->
             {value, Value};
-        {error, {Reason, ErrorKeyList}} ->
-            StrErrorKeyList = lists:map(
-                fun(Item) -> atom_to_list(Item) end,
-                ErrorKeyList
-            ),
-            ErrorStrKey = string:join(StrErrorKeyList, "."),
-            ErrorKey = list_to_atom(ErrorStrKey),
-            {error, {Reason, ErrorKey}}
+        {not_found, ErrorNode} ->
+            {error, {not_found, ErrorNode}}
     end.
 
-get([], ProcessedKeys, Value) ->
-    {value, {lists:reverse(ProcessedKeys), Value}};
+find(IData, Addr) when is_atom(Addr) ->
+    AddrList = node_addr:split(Addr),
 
-get([H | Rest], ProcessedKeys, TupleList) ->
-    case lists:keysearch(H, 1, TupleList) of
-        {value, {H, NestedValue}} ->
-            get(Rest, [H | ProcessedKeys], NestedValue);
+    case find(AddrList, [], IData) of
+        {node, Node} -> 
+            {node, Node};
+        {not_found, ErrorAddrList} ->
+            {not_found, node_addr:join(ErrorAddrList)}
+    end.
+
+find([], _ProcessedKeys, Node) ->
+    {node, Node};
+
+find([H | Rest], ProcessedKeys, IData) ->
+    case lists:keysearch(H, 1, IData) of
+        {value, {H, NestedNode}} ->
+            find(Rest, [H | ProcessedKeys], NestedNode);
         false ->
-            {error, {not_found, lists:reverse(ProcessedKeys)}}
+            {not_found, lists:reverse(ProcessedKeys)}
     end.

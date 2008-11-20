@@ -21,6 +21,7 @@ YECC_OBJECTS=erlcfg_parser
 
 OBJECTS=erlcfg_lexer \
 		erlcfg_parser \
+		node_addr \
 		interp_data \
 		erlcfg_data \
 		erlcfg
