@@ -4,3 +4,4 @@ src/*_lexer.erl
 src/*_parser.erl
 diff
 commit
+erl_crash.dump
