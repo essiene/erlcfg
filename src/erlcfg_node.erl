@@ -36,7 +36,7 @@ node_set(Node, Key, Value) when is_list(Node), is_atom(Key) ->
 node_get(Node, Key) when is_list(Node), is_atom(Key) ->
     case lists:keysearch(Key, 1, Node) of
         false ->
-            undefined;
+            {error, undefined};
         {value, {Key, Value}} ->
             {value, Value}
     end.
