@@ -1,4 +1,4 @@
--module(erlcfg_data, [Data]).
+-module(erlcfg_data, [Node]).
 -export([
         raw/0,
         get/1
@@ -6,8 +6,8 @@
 
 
 raw() ->
-    Data.
+    Node.
 
 
 get(Key) ->
-    interp_data:get(Data, Key).
+    erlcfg_node:get(Node, Key).
