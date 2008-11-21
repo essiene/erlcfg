@@ -111,3 +111,95 @@ node_get_multiple_entry_and_multiple_get_test() ->
     ?assertEqual(Expected3, Result3).
 
 
+if_parent_found_ok_test() ->
+    Data = [
+        {one, 
+            [
+                {two, 
+                    [
+                        {three, 123},
+                        {four, 124}
+                    ]
+                },
+                {three,
+                    [
+                        {three, 133},
+                        {four, 134}
+                    ]
+                }
+            ]
+        },
+        {two, void}
+    ],
+    Fun = fun(Parent, ChildName)  ->
+            {Parent, ChildName}
+    end,
+
+    Expected = {
+        [ 
+            {two, 
+                [
+                    {three, 123}, 
+                    {four, 124} 
+                ]
+            },
+            {three,
+                [
+                    {three, 133},
+                    {four, 134}
+                ]
+            }
+        ],
+
+        two
+    },
+
+    Result = erlcfg_node:if_parent_found(Data, one.two, Fun),
+    ?assertEqual(Expected, Result),
+
+    Expected1 = { 
+        [ 
+            {three, 123}, 
+            {four, 124} 
+        ], 
+        three 
+    },
+
+    Result1 = erlcfg_node:if_parent_found(Data, one.two.three, Fun),
+    ?assertEqual(Expected1, Result1).
+
+if_parent_found_not_found_test() ->
+    Data = [
+        {one, 
+            [
+                {two, 
+                    [
+                        {three, 123},
+                        {four, 124}
+                    ]
+                },
+                {three,
+                    [
+                        {three, 133},
+                        {four, 134}
+                    ]
+                }
+            ]
+        },
+        {two, void}
+    ],
+    Fun = fun(Parent, ChildName)  ->
+            {Parent, ChildName}
+    end,
+
+    Expected = {not_found, one.two.five},
+    Result = erlcfg_node:if_parent_found(Data, one.two.five.six, Fun),
+    ?assertEqual(Expected, Result),
+
+    Expected1 = {not_found, one.three.three.four},
+    Result1 = erlcfg_node:if_parent_found(Data, one.three.three.four.five.six.seven, Fun),
+    ?assertEqual(Expected1, Result1),
+
+    Expected2 = {not_found, three},
+    Result2 = erlcfg_node:if_parent_found(Data, three.four.five, Fun),
+    ?assertEqual(Expected2, Result2).
