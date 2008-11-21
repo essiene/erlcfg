@@ -203,3 +203,39 @@ if_parent_found_not_found_test() ->
     Expected2 = {not_found, three},
     Result2 = erlcfg_node:if_parent_found(Data, three.four.five, Fun),
     ?assertEqual(Expected2, Result2).
+
+
+get_test() ->
+    Data = [
+        {one, 
+            [
+                {two, 
+                    [
+                        {three, 123},
+                        {four, 124}
+                    ]
+                },
+                {three,
+                    [
+                        {three, 133},
+                        {four, 134}
+                    ]
+                }
+            ]
+        },
+        {two, void}
+    ],
+
+    Expected = {value, 123},
+    Result = erlcfg_node:get(Data, one.two.three),
+    ?assertEqual(Expected, Result),
+
+    Expected1 = {value, void},
+    Result1 = erlcfg_node:get(Data, two),
+    ?assertEqual(Expected1, Result1),
+
+    Expected2 = {not_found, two.three},
+    Result2 = erlcfg_node:get(Data, two.three.four.five),
+    ?assertEqual(Expected2, Result2).
+
+
