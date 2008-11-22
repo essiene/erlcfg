@@ -14,3 +14,8 @@ eval_val_with_nonempty_interp_test() ->
     Interp = [{foo, bar}, {bar, baz}],
     Expected = {Interp, 5},
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, {val, 5, nil})).
+
+eval_set_test()  ->
+    Interp = erlcfg_interp:new(),
+    Expected = {[{foo, bar}], bar},
+    ?assertEqual(Expected, erlcfg_interp:eval(Interp, {set, foo, bar})).

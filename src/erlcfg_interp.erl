@@ -21,8 +21,8 @@ eval(State, {get, Address, _Ignore}) ->
 
 eval(State, {set, Address, Value}) ->
     case erlcfg_node:set(State, Address, Value) of
-        {State, Value} ->
-            {State, Value};
         {not_found, InvalidAddress} ->
-            throw({not_found, InvalidAddress})
+            throw({not_found, InvalidAddress});
+        NewState ->
+            {NewState, Value}
     end.
