@@ -19,3 +19,9 @@ eval_set_test()  ->
     Interp = erlcfg_interp:new(),
     Expected = {[{foo, bar}], bar},
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, {set, foo, bar})).
+
+eval_set_no_parent_test()  ->
+    Interp = erlcfg_interp:new(),
+    {Interp1, bar} = erlcfg_interp:eval(Interp, {set, foo, bar}),
+    Expected = {not_found, foo.foo},
+    ?assertThrow(Expected, erlcfg_interp:eval(Interp1, {set, foo.foo.bar, bar})).
