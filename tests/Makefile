@@ -12,6 +12,7 @@ TESTS=test_erlcfg_lexer \
 	  test_node_addr \
 	  test_erlcfg_node_find \
 	  test_erlcfg_node \
+	  test_erlcfg_interp \
 	  test_erlcfg_data \
 	  test_erlcfg
 
@@ -22,6 +23,7 @@ test: compile
 	erl $(ERLC_FLAGS) -noshell -s test_node_addr test -s init stop
 	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_node_find test -s init stop
 	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_node test -s init stop
+	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_interp test -s init stop
 	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_data test -s init stop
 	erl $(ERLC_FLAGS) -noshell -s test_erlcfg test -s init stop
 
