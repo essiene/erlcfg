@@ -1,0 +1,64 @@
+Lexer
+------
+Currently the lexer recognizes some basic types, similar to Erlang:
+    - integer
+    - float
+    - atom (The atom recognized by the lexer is limited on purpose,
+            since node addresses and variables are basically atoms)
+    - quoted_atom (This is exactly the same as an Erlang quoted atom.
+            complex atoms values should be quoted_atoms).
+    - string
+    * Currently there is no support for the list type, and there
+      is no planned support for tuple.
+
+    - The other basic type recognized by the lexer is the variable
+      which is a $atom.atom.atom (which is a dollar sign followed by atoms
+      which can be concatenated with a dot '.', this is used in addressing
+      nodes which can be nested. 
+
+Parser
+-------
+
+The parser recognizes zero or more nodes, which can be nested in other nodes.
+The parser is also very strict, allowing no optional syntaxes (for now). This makes
+things simple for me.
+
+A node is basically is an address with a value, which is created by an assignment.
+Currently, the parser can parse simple node assignments, and not nested nodes.
+
+This will change soon.
+
+The nodes assignments are parsed into a simple AST shown below. The nodes of the
+AST are VM/Interpreter instructions that will be directly eval'd by the Interpreter.
+
+Abstract Syntax Tree.
+----------------------
+
+Currently, the AST is very naive and simple, to fit the flat non nested state of 
+the parser, it will evolve soon to fit the new realities as it continues.
+
+[command,
+    [command,
+        [command, []]
+    ]
+]
+
+Once the AST is built, it is traversed, and each command is recursively eval'd by
+the Interpreter/VM
+
+Interpreter/VM Commands
+-----------------------
+
+Command => {set, Addr, Command} |
+           {get, Addr, _}  |
+           {val, Data, _}
+
+{set, Addr, Command} : evaluates Command and sets the content of Addr to that value. It then returns that value.
+                       and Addr can be set only once.
+
+{get, Addr, _} : returns the value stored at Addr.
+
+{val, Data, _} : returns Data, 
+
+Addr => atom
+Data => atom | quoted_atom | bool | integer | float | string
