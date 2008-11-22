@@ -1,5 +1,8 @@
 -module(test_erlcfg_node).
 -include_lib("eunit/include/eunit.hrl").
+-export([
+        parent_found_mfa/2
+    ]).
 
 
 node_empty_set_test() ->
@@ -110,6 +113,9 @@ node_get_multiple_entry_and_multiple_get_test() ->
     Result3 = erlcfg_node:node_get(Node, foo3),
     ?assertEqual(Expected3, Result3).
 
+parent_found_mfa(Parent, ChildName)  -> 
+    {Parent, ChildName}.
+
 
 if_parent_found_ok_test() ->
     Data = [
@@ -131,6 +137,7 @@ if_parent_found_ok_test() ->
         },
         {two, void}
     ],
+
     Fun = fun(Parent, ChildName)  ->
             {Parent, ChildName}
     end,
@@ -165,8 +172,9 @@ if_parent_found_ok_test() ->
         three 
     },
 
-    Result1 = erlcfg_node:if_parent_found(Data, one.two.three, Fun),
+    Result1 = erlcfg_node:if_parent_found(Data, one.two.three, ?MODULE, parent_found_mfa, []),
     ?assertEqual(Expected1, Result1).
+
 
 if_parent_found_not_found_test() ->
     Data = [
@@ -238,4 +246,34 @@ get_test() ->
     Result2 = erlcfg_node:get(Data, two.three.four.five),
     ?assertEqual(Expected2, Result2).
 
+set_test() ->
+    Data = [],
+    Expected = [
+        {one, []}, 
+        {two, void}
+    ],
 
+    D1 = erlcfg_node:set(Data, one, []),
+    Data1 = erlcfg_node:set(D1, two, void),
+    ?assertEqual(Expected, Data1),
+
+    Expected2 = [
+        {
+            one, 
+            [ 
+                {
+                    two, 
+                    [ 
+                        {three, 123}, 
+                        {four, 124}
+                    ]
+                }
+            ]
+        }, 
+        {two, void}
+    ],
+
+    D2 = erlcfg_node:set(Data1, one.two, []),
+    D3 = erlcfg_node:set(D2, one.two.three, 123),
+    Data2 = erlcfg_node:set(D3, one.two.four, 124),
+    ?assertEqual(Expected2, Data2).

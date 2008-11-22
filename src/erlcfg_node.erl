@@ -10,7 +10,9 @@
         node_find/3,
         node_set/3,
         node_get/2,
-        if_parent_found/3
+        if_parent_found/3,
+        if_parent_found/5,
+        walk_tree_set_node/5
     ]).
 
 
@@ -20,10 +22,16 @@ new() ->
 
 
 set(IData, Key, Value) when is_atom(Key) ->
-    Fun = fun(Parent, ChildName) -> 
-            node_set(Parent, ChildName, Value)
-    end,
-    if_parent_found(IData, Key, Fun).
+    if_parent_found(IData, Key, ?MODULE, walk_tree_set_node, [IData, Key, Value]).
+
+walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
+    node_set(Parent, ChildName, Value);
+
+walk_tree_set_node(Parent, ChildName, IData, Key, Value) -> 
+    NewValue = node_set(Parent, ChildName, Value), 
+    NewKey = node_addr:parent(Key),
+    if_parent_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
+
 
 get(IData, Key) when is_atom(Key) ->
     Fun = fun(Parent, ChildName) ->
@@ -79,3 +87,8 @@ if_parent_found(IData, Key, Fun) ->
             {not_found, InvalidAddress}
     end.
 
+if_parent_found(IData, Key, Mod, Fun, Args) ->
+    Fun_Mfa = fun(Parent, ChildName) -> 
+            apply(Mod, Fun, [Parent, ChildName | Args])
+    end,
+    if_parent_found(IData, Key, Fun_Mfa).

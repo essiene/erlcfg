@@ -40,10 +40,10 @@ split(NodeAddr) when is_atom(NodeAddr) ->
     lists:map(StrList2AtomList, StrList).
 
 
-
+emancipate('') ->
+    invalid;
 
 emancipate(NodeAddr) when is_atom(NodeAddr) ->
     List = split(NodeAddr),
     {ParentList, [Child]} = lists:split(length(List) - 1, List),
     {join(ParentList), Child}.
-
