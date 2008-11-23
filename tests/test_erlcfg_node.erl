@@ -128,12 +128,28 @@ node_read_multiple_entry_and_multiple_get_test() ->
     Result3 = erlcfg_node:node_read(Node, foo3),
     ?assertEqual(Expected3, Result3).
 
+node_child_read_from_data_node_test() ->
+    Node = {d, foo, bar},
+
+    Expected = {error, data_node_read_child},
+    Result = erlcfg_node:node_read(Node, foo),
+    ?assertEqual(Expected, Result).
+
 node_read_from_data_node_test() ->
     Node = {d, foo, bar},
 
-    Expected = {error, data_node_read},
-    Result = erlcfg_node:node_read(Node, foo),
+    Expected = {value, bar},
+    Result = erlcfg_node:node_read(Node),
     ?assertEqual(Expected, Result).
+
+node_read_from_container_node_test() ->
+    Node = {c, boo, [
+        {d, foo, bar}
+    ]},
+    Expected = {value, [{d, foo, bar}]},
+    Result = erlcfg_node:node_read(Node),
+    ?assertEqual(Expected, Result).
+
 
 parent_found_mfa(Parent, ChildName)  -> 
     {Parent, ChildName}.

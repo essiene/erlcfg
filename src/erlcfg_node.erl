@@ -10,6 +10,7 @@
         node_find/3,
         node_add/2,
         node_add/3,
+        node_read/1,
         node_read/2,
         if_parent_found/3,
         if_parent_found/5,
@@ -63,7 +64,11 @@ node_read({c, _ParentName, Container}, Key) when is_list(Container), is_atom(Key
     end;
 
 node_read({d, _ParentName, _Container}, _Key) ->
-    {error, data_node_read}.
+    {error, data_node_read_child}.
+
+node_read({_Type, _NodeName, Value}) ->
+    {value, Value}.
+
 
 
 node_find(IData, Addr) when is_atom(Addr) ->
