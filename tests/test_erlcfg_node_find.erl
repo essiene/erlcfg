@@ -2,173 +2,173 @@
 -include_lib("eunit/include/eunit.hrl").
 
 node_find_empty_test() ->
-    ?assertEqual({node, bar}, erlcfg_node:node_find([], [foo], bar)).
+    ?assertEqual({d, foo, bar}, erlcfg_node:node_find([], [foo], {d, foo, bar})).
 
 node_find_onelevel_single_test() ->
-    Data = [
-        {foo, 5}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find([foo], [], Data)).
+    Data = {c, '', [
+        {d, foo, 5}
+    ]},
+    ?assertEqual({d, foo, 5}, erlcfg_node:node_find([foo], [], Data)).
 
 node_find_onelevel_dual_test() ->
-    Data = [
-        {foo, 5}, 
-        {bar, baz}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find([foo], [], Data)),
-    ?assertEqual({node, baz}, erlcfg_node:node_find([bar], [], Data)).
+    Data = {c, '', [
+        {d, foo, 5}, 
+        {d, bar, baz}
+    ]},
+    ?assertEqual({d, foo, 5}, erlcfg_node:node_find([foo], [], Data)),
+    ?assertEqual({d, bar, baz}, erlcfg_node:node_find([bar], [], Data)).
 
 node_find_onelevel_multi_test() ->
-    Data = [
-        {int, 5}, 
-        {atom, baz}, 
-        {string, "A string"}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find([int], [], Data)),
-    ?assertEqual({node, baz}, erlcfg_node:node_find([atom], [], Data)),
-    ?assertEqual({node, "A string"}, erlcfg_node:node_find([string], [], Data)).
+    Data = {c, '', [
+        {d, int, 5}, 
+        {d, atom, baz}, 
+        {d, string, "A string"}
+    ]},
+    ?assertEqual({d, int, 5}, erlcfg_node:node_find([int], [], Data)),
+    ?assertEqual({d, atom, baz}, erlcfg_node:node_find([atom], [], Data)),
+    ?assertEqual({d, string, "A string"}, erlcfg_node:node_find([string], [], Data)).
 
 
 node_find_twolevels_test() ->
-    Data = [
-        {foo, 
+    Data = {c, '', [
+        {c, foo, 
             [
-                {int, 5}, 
-                {float, 5.0}
+                {d, int, 5}, 
+                {d, float, 5.0}
             ]
         }
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find([foo, int], [], Data)),
-    ?assertEqual({node, 5.0}, erlcfg_node:node_find([foo, float], [], Data)).
+    ]},
+    ?assertEqual({d, int, 5}, erlcfg_node:node_find([foo, int], [], Data)),
+    ?assertEqual({d, float, 5.0}, erlcfg_node:node_find([foo, float], [], Data)).
 
 node_find_multi_level_nested_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [ 
-                {one, 11}, 
-                {two, 12},
-                {three, 
+                {d, one, 11}, 
+                {d, two, 12},
+                {c, three, 
                     [ 
-                        {one, 131}, 
-                        {two, 132} 
+                        {d, one, 131}, 
+                        {d, two, 132} 
                     ]
                 }
             ]
         },
 
-        {two, 
+        {c, two, 
             [ 
-                {one, 
+                {c, one, 
                     [ 
-                        {one, 211}, 
-                        {two, 212} 
+                        {d, one, 211}, 
+                        {d, two, 212} 
                     ]
                 },
 
-                {two, 
+                {c, two, 
                     [ 
-                        {one, 221}, 
-                        {two, 222} 
+                        {d, one, 221}, 
+                        {d, two, 222} 
                     ]
                 }
             ]
         }
 
 
-    ],
+    ]},
 
-    ?assertEqual({node, 11}, erlcfg_node:node_find([one, one], [], Data)),
-    ?assertEqual({node, 12}, erlcfg_node:node_find([one, two], [], Data)),
-    ?assertEqual({node, 131}, erlcfg_node:node_find([one, three, one], [], Data)),
-    ?assertEqual({node, 132}, erlcfg_node:node_find([one, three, two], [], Data)),
+    ?assertEqual({d, one, 11}, erlcfg_node:node_find([one, one], [], Data)),
+    ?assertEqual({d, two, 12}, erlcfg_node:node_find([one, two], [], Data)),
+    ?assertEqual({d, one, 131}, erlcfg_node:node_find([one, three, one], [], Data)),
+    ?assertEqual({d, two, 132}, erlcfg_node:node_find([one, three, two], [], Data)),
 
-    ?assertEqual({node, 211}, erlcfg_node:node_find([two, one, one], [], Data)),
-    ?assertEqual({node, 212}, erlcfg_node:node_find([two, one, two], [], Data)),
-    ?assertEqual({node, 221}, erlcfg_node:node_find([two, two, one], [], Data)),
-    ?assertEqual({node, 222}, erlcfg_node:node_find([two, two, two], [], Data)).
+    ?assertEqual({d, one, 211}, erlcfg_node:node_find([two, one, one], [], Data)),
+    ?assertEqual({d, two, 212}, erlcfg_node:node_find([two, one, two], [], Data)),
+    ?assertEqual({d, one, 221}, erlcfg_node:node_find([two, two, one], [], Data)),
+    ?assertEqual({d, two, 222}, erlcfg_node:node_find([two, two, two], [], Data)).
 
 
 
 
 node_find2_onelevel_single_test() ->
-    Data = [
-        {foo, 5}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find(Data, foo)).
+    Data = {c, '', [
+        {d, foo, 5}
+    ]},
+    ?assertEqual({d, foo, 5}, erlcfg_node:node_find(Data, foo)).
 
 node_find2_onelevel_dual_test() ->
-    Data = [
-        {foo, 5}, 
-        {bar, baz}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find(Data, foo)),
-    ?assertEqual({node, baz}, erlcfg_node:node_find(Data, bar)).
+    Data = {c, '',[
+        {d, foo, 5}, 
+        {d, bar, baz}
+    ]},
+    ?assertEqual({d, foo, 5}, erlcfg_node:node_find(Data, foo)),
+    ?assertEqual({d, bar, baz}, erlcfg_node:node_find(Data, bar)).
 
 node_find2_onelevel_multi_test() ->
-    Data = [
-        {int, 5}, 
-        {atom, baz}, 
-        {string, "A string"}
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find(Data, int)),
-    ?assertEqual({node, baz}, erlcfg_node:node_find(Data, atom)),
-    ?assertEqual({node, "A string"}, erlcfg_node:node_find(Data, string)).
+    Data = {c, '', [
+        {d, int, 5}, 
+        {d, atom, baz}, 
+        {d, string, "A string"}
+    ]},
+    ?assertEqual({d, int, 5}, erlcfg_node:node_find(Data, int)),
+    ?assertEqual({d, atom, baz}, erlcfg_node:node_find(Data, atom)),
+    ?assertEqual({d, string, "A string"}, erlcfg_node:node_find(Data, string)).
 
 
 node_find2_twolevels_test() ->
-    Data = [
-        {foo, 
+    Data = {c, '', [
+        {c, foo, 
             [
-                {int, 5}, 
-                {float, 5.0}
+                {d, int, 5}, 
+                {d, float, 5.0}
             ]
         }
-    ],
-    ?assertEqual({node, 5}, erlcfg_node:node_find(Data, foo.int)),
-    ?assertEqual({node, 5.0}, erlcfg_node:node_find(Data, foo.float)).
+    ]},
+    ?assertEqual({d, int, 5}, erlcfg_node:node_find(Data, foo.int)),
+    ?assertEqual({d, float, 5.0}, erlcfg_node:node_find(Data, foo.float)).
 
 node_find2_multi_level_nested_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [ 
-                {one, 11}, 
-                {two, 12},
-                {three, 
+                {d, one, 11}, 
+                {d, two, 12},
+                {c, three, 
                     [ 
-                        {one, 131}, 
-                        {two, 132} 
+                        {d, one, 131}, 
+                        {d, two, 132} 
                     ]
                 }
             ]
         },
 
-        {two, 
+        {c, two, 
             [ 
-                {one, 
+                {c, one, 
                     [ 
-                        {one, 211}, 
-                        {two, 212} 
+                        {d, one, 211}, 
+                        {d, two, 212} 
                     ]
                 },
 
-                {two, 
+                {c, two, 
                     [ 
-                        {one, 221}, 
-                        {two, 222} 
+                        {d, one, 221}, 
+                        {d, two, 222} 
                     ]
                 }
             ]
         }
 
 
-    ],
+    ]},
 
-    ?assertEqual({node, 11}, erlcfg_node:node_find(Data, one.one)),
-    ?assertEqual({node, 12}, erlcfg_node:node_find(Data, one.two)),
-    ?assertEqual({node, 131}, erlcfg_node:node_find(Data, one.three.one)),
-    ?assertEqual({node, 132}, erlcfg_node:node_find(Data, one.three.two)),
+    ?assertEqual({d, one, 11}, erlcfg_node:node_find(Data, one.one)),
+    ?assertEqual({d, two, 12}, erlcfg_node:node_find(Data, one.two)),
+    ?assertEqual({d, one, 131}, erlcfg_node:node_find(Data, one.three.one)),
+    ?assertEqual({d, two, 132}, erlcfg_node:node_find(Data, one.three.two)),
 
-    ?assertEqual({node, 211}, erlcfg_node:node_find(Data, two.one.one)),
-    ?assertEqual({node, 212}, erlcfg_node:node_find(Data, two.one.two)),
-    ?assertEqual({node, 221}, erlcfg_node:node_find(Data, two.two.one)),
-    ?assertEqual({node, 222}, erlcfg_node:node_find(Data, two.two.two)).
+    ?assertEqual({d, one, 211}, erlcfg_node:node_find(Data, two.one.one)),
+    ?assertEqual({d, two, 212}, erlcfg_node:node_find(Data, two.one.two)),
+    ?assertEqual({d, one, 221}, erlcfg_node:node_find(Data, two.two.one)),
+    ?assertEqual({d, two, 222}, erlcfg_node:node_find(Data, two.two.two)).

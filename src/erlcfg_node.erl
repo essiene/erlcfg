@@ -70,26 +70,25 @@ node_find(IData, Addr) when is_atom(Addr) ->
     AddrList = node_addr:split(Addr),
 
     case node_find(AddrList, [], IData) of
-        {node, Node} -> 
-            {node, Node};
         {not_found, ErrorAddrList} ->
-            {not_found, node_addr:join(ErrorAddrList)}
+            {not_found, node_addr:join(ErrorAddrList)};
+        Node -> 
+            Node
     end.
 
-node_find([]=_RemainingKeys, _ProcessedKeys, IData) ->
-    {node, IData};
+node_find([]=_RemainingKeys, _ProcessedKeys, Node) ->
+    Node;
 
-
-node_find([H | Rest]=_RemainingKeys, ProcessedKeys, IData) when is_list(IData) ->
-    case lists:keysearch(H, 1, IData) of
-        {value, {H, NestedNode}} ->
-            node_find(Rest, [H | ProcessedKeys], NestedNode);
+node_find([CurrentKey | Rest]=_RemainingKeys, ProcessedKeys, {c, _ParentName, Container}) when is_list(Container) ->
+    case lists:keysearch(CurrentKey, 2, Container) of
+        {value, {_Type, CurrentKey, _Value}=CurrentNode} ->
+            node_find(Rest, [CurrentKey | ProcessedKeys], CurrentNode);
         false ->
-            {not_found, lists:reverse([H | ProcessedKeys])}
+            {not_found, lists:reverse([CurrentKey | ProcessedKeys])}
     end;
 
-node_find([H | _Rest]=_RemainingKeys, ProcessedKeys, _IData) ->
-    {not_found, lists:reverse([H | ProcessedKeys])}.
+node_find([CurrentKey | _Rest]=_RemainingKeys, ProcessedKeys, {d, _ParentName, _Value}) ->
+    {not_found, lists:reverse([CurrentKey | ProcessedKeys])}.
 
 
 if_parent_found(IData, Key, Fun) ->
