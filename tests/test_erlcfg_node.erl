@@ -8,15 +8,25 @@
 node_new_test() ->
     ?assertEqual({c, '', []}, erlcfg_node:new()).
 
-node_empty_add_test() ->
+node_add_test() ->
     Node = {c, '', []},
     Expected = {c, '', [
-        {d, foo, bar},
-        {c, moo, []}
+        {d, one, 1},
+        {c, two, []}
     ]},
-    R1 = erlcfg_node:node_add(Node, foo, bar),
-    Result = erlcfg_node:node_add(R1, moo),
-    ?assertEqual(Expected, Result).
+    R1 = erlcfg_node:node_add(Node, one, 1),
+    Result = erlcfg_node:node_add(R1, two),
+    ?assertEqual(Expected, Result),
+
+    Expected1 = {c, '', [
+        {d, one, 1},
+        {c, two, []}, 
+        {d, three, 3}
+    ]},
+
+    Result1 = erlcfg_node:node_add(Result, three, 3),
+    ?assertEqual(Expected1, Result1).
+
 
 node_singlecontent_add_test() ->
     Node = {c, '', [
@@ -25,19 +35,6 @@ node_singlecontent_add_test() ->
 
     Expected = {c, '', [
         {d, bar, baz},
-        {d, foo, bar}
-    ]},
-    Result = erlcfg_node:node_add(Node, foo, bar),
-    ?assertEqual(Expected, Result).
-
-node_multiplecontent_add_test() ->
-    Node = {c, '', [
-        {d, bar, baz},
-        {d, moo, foo}
-    ]},
-    Expected = {c, '', [
-        {d, bar, baz},
-        {d, moo, foo},
         {d, foo, bar}
     ]},
     Result = erlcfg_node:node_add(Node, foo, bar),
@@ -66,6 +63,16 @@ node_multiplecontent_multipleadd_collision_test() ->
 
     Result1 = erlcfg_node:node_add(Result, bar, foo),
     ?assertEqual(Expected1, Result1).
+
+node_add_to_data_node_test() ->
+    Node = {d, bar, baz},
+
+    Expected = {error, data_node_add},
+    Result = erlcfg_node:node_add(Node, bar, bar),
+    ?assertEqual(Expected, Result),
+
+    Result1 = erlcfg_node:node_add(Node, bar),
+    ?assertEqual(Expected, Result1).
 
 node_read_when_empty_test() ->
     Node = {c, '', []},
@@ -120,6 +127,13 @@ node_read_multiple_entry_and_multiple_get_test() ->
     Expected3 = {error, undefined},
     Result3 = erlcfg_node:node_read(Node, foo3),
     ?assertEqual(Expected3, Result3).
+
+node_read_from_data_node_test() ->
+    Node = {d, foo, bar},
+
+    Expected = {error, data_node_read},
+    Result = erlcfg_node:node_read(Node, foo),
+    ?assertEqual(Expected, Result).
 
 parent_found_mfa(Parent, ChildName)  -> 
     {Parent, ChildName}.

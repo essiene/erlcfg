@@ -40,20 +40,30 @@ get(IData, Key) when is_atom(Key) ->
     end,
     if_parent_found(IData, Key, Fun).
 
-node_add({c, ParentName, Container}, Key, Value) when is_list(Container), is_atom(Key) ->
-    NewContainer = lists:keystore(Key, 2, Container, {d, Key, Value}),
-    {c, ParentName, NewContainer}.
 
-node_add({c, _ParentName, _Container}=ParentNode, Key) ->
-    node_add(ParentNode, Key, []).
+node_add({_Type, _ParentName, _Container}=ParentNode, Key, Value) ->
+    node_add(ParentNode, Key, Value, d).
 
-node_read(Node, Key) when is_list(Node), is_atom(Key) ->
-    case lists:keysearch(Key, 2, Node) of
+node_add({_Type, _ParentName, _Container}=ParentNode, Key) ->
+    node_add(ParentNode, Key, [], c).
+
+node_add({c, ParentName, Container}, Key, Value, Type) when is_list(Container), is_atom(Key) ->
+    NewContainer = lists:keystore(Key, 2, Container, {Type, Key, Value}),
+    {c, ParentName, NewContainer};
+
+node_add({d, _ParentName, _Container}, _Key, _Value, _Type) ->
+    {error, data_node_add}.
+
+node_read({c, _ParentName, Container}, Key) when is_list(Container), is_atom(Key) ->
+    case lists:keysearch(Key, 2, Container) of
         false ->
             {error, undefined};
-        {value, {Type, Key, Value}} ->
-            {Type, value, Value}
-    end.
+        {value, {_Type, Key, Value}} ->
+            {value, Value}
+    end;
+
+node_read({d, _ParentName, _Container}, _Key) ->
+    {error, data_node_read}.
 
 
 node_find(IData, Addr) when is_atom(Addr) ->
