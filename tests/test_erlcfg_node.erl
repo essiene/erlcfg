@@ -5,112 +5,120 @@
     ]).
 
 
-node_empty_set_test() ->
-    Node = [],
-    Expected = [
-        {foo, bar}
-    ],
-    Result = erlcfg_node:node_set(Node, foo, bar),
+node_new_test() ->
+    ?assertEqual({c, '', []}, erlcfg_node:new()).
+
+node_empty_add_test() ->
+    Node = {c, '', []},
+    Expected = {c, '', [
+        {d, foo, bar},
+        {c, moo, []}
+    ]},
+    R1 = erlcfg_node:node_add(Node, foo, bar),
+    Result = erlcfg_node:node_add(R1, moo),
     ?assertEqual(Expected, Result).
 
-node_singlecontent_set_test() ->
-    Node = [
-        {bar, baz}
-    ],
-    Expected = [
-        {bar, baz},
-        {foo, bar}
-    ],
-    Result = erlcfg_node:node_set(Node, foo, bar),
+node_singlecontent_add_test() ->
+    Node = {c, '', [
+        {d, bar, baz}
+    ]},
+
+    Expected = {c, '', [
+        {d, bar, baz},
+        {d, foo, bar}
+    ]},
+    Result = erlcfg_node:node_add(Node, foo, bar),
     ?assertEqual(Expected, Result).
 
-node_multiplecontent_set_test() ->
-    Node = [
-        {bar, baz},
-        {moo, foo}
-    ],
-    Expected = [
-        {bar, baz},
-        {moo, foo},
-        {foo, bar}
-    ],
-    Result = erlcfg_node:node_set(Node, foo, bar),
+node_multiplecontent_add_test() ->
+    Node = {c, '', [
+        {d, bar, baz},
+        {d, moo, foo}
+    ]},
+    Expected = {c, '', [
+        {d, bar, baz},
+        {d, moo, foo},
+        {d, foo, bar}
+    ]},
+    Result = erlcfg_node:node_add(Node, foo, bar),
     ?assertEqual(Expected, Result).
 
-node_multiplecontent_multipleset_collision_test() ->
-    Node = [
-        {bar, baz},
-        {moo, foo}
-    ],
+node_multiplecontent_multipleadd_collision_test() ->
+    Node = {c, '', [
+        {d, bar, baz},
+        {d, moo, foo}
+    ]},
 
-    Expected = [
-        {bar, baz},
-        {moo, foo},
-        {foo, bar}
-    ],
-    Result = erlcfg_node:node_set(Node, foo, bar),
+    Expected = {c, '', [
+        {d, bar, baz},
+        {d, moo, foo},
+        {d, foo, bar}
+    ]},
+
+    Result = erlcfg_node:node_add(Node, foo, bar),
     ?assertEqual(Expected, Result),
 
-    Expected1 = [
-        {bar, foo},
-        {moo, foo},
-        {foo, bar}
-    ],
+    Expected1 = {c, '', [
+        {d, bar, foo},
+        {d, moo, foo},
+        {d, foo, bar}
+    ]},
 
-    Result1 = erlcfg_node:node_set(Result, bar, foo),
+    Result1 = erlcfg_node:node_add(Result, bar, foo),
     ?assertEqual(Expected1, Result1).
 
-node_get_when_empty_test() ->
-    Node = [],
+node_read_when_empty_test() ->
+    Node = {c, '', []},
     Expected = {error, undefined},
-    Result = erlcfg_node:node_get(Node, foo),
+    Result = erlcfg_node:node_read(Node, foo),
     ?assertEqual(Expected, Result).
 
-node_get_when_not_empty_and_key_not_set_test() ->
-    Node = [
-        {foo, bar}
-    ],
+node_read_when_not_empty_and_key_not_set_test() ->
+    Node = {c, '', [
+        {d, foo, bar}
+    ]},
+
     Expected = {error, undefined},
-    Result = erlcfg_node:node_get(Node, moo),
+    Result = erlcfg_node:node_read(Node, moo),
     ?assertEqual(Expected, Result).
 
-node_get_single_entry_and_key_is_set_test() ->
-    Node = [
-        {foo, bar}
-    ],
+node_read_single_entry_and_key_is_set_test() ->
+    Node = {c, '', [
+        {d, foo, bar}
+    ]},
     Expected = {value, bar},
-    Result = erlcfg_node:node_get(Node, foo),
+    Result = erlcfg_node:node_read(Node, foo),
     ?assertEqual(Expected, Result).
 
-node_get_multiple_entry_and_key_is_set_test() ->
-    Node = [
-        {foo, bar}
-    ],
+node_read_multiple_entry_and_key_is_set_test() ->
+    Node = {c, '', [
+        {d, foo, bar}
+    ]},
     Expected = {value, bar},
-    Result = erlcfg_node:node_get(Node, foo),
+    Result = erlcfg_node:node_read(Node, foo),
     ?assertEqual(Expected, Result).
 
-node_get_multiple_entry_and_multiple_get_test() ->
-    Node = [
-        {foo, bar},
-        {foo1, bar1},
-        {foo2, bar2}
-    ],
+node_read_multiple_entry_and_multiple_get_test() ->
+    Node = {c, '', [
+        {d, foo, bar},
+        {d, foo1, bar1},
+        {d, foo2, bar2}
+    ]},
 
     Expected = {value, bar},
-    Result = erlcfg_node:node_get(Node, foo),
+    Result = erlcfg_node:node_read(Node, foo),
     ?assertEqual(Expected, Result),
 
     Expected1 = {value, bar1},
-    Result1 = erlcfg_node:node_get(Node, foo1),
+    Result1 = erlcfg_node:node_read(Node, foo1),
     ?assertEqual(Expected1, Result1),
 
     Expected2 = {value, bar2},
-    Result2 = erlcfg_node:node_get(Node, foo2),
+    Result2 = erlcfg_node:node_read(Node, foo2),
     ?assertEqual(Expected2, Result2),
 
     Expected3 = {error, undefined},
-    Result3 = erlcfg_node:node_get(Node, foo3),
+    Result3 = erlcfg_node:node_read(Node, foo3),
     ?assertEqual(Expected3, Result3).
 
 parent_found_mfa(Parent, ChildName)  -> 
@@ -118,25 +126,25 @@ parent_found_mfa(Parent, ChildName)  ->
 
 
 if_parent_found_ok_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [
-                {two, 
+                {c, two, 
                     [
-                        {three, 123},
-                        {four, 124}
+                        {d, three, 123},
+                        {d, four, 124}
                     ]
                 },
-                {three,
+                {c, three,
                     [
-                        {three, 133},
-                        {four, 134}
+                        {d, three, 133},
+                        {d, four, 134}
                     ]
                 }
             ]
         },
-        {two, void}
-    ],
+        {d, two, void}
+    ]},
 
     Fun = fun(Parent, ChildName)  ->
             {Parent, ChildName}
@@ -144,16 +152,16 @@ if_parent_found_ok_test() ->
 
     Expected = {
         [ 
-            {two, 
+            {c, two, 
                 [
-                    {three, 123}, 
-                    {four, 124} 
+                    {d, three, 123}, 
+                    {d, four, 124} 
                 ]
             },
-            {three,
+            {c, three,
                 [
-                    {three, 133},
-                    {four, 134}
+                    {d, three, 133},
+                    {d, four, 134}
                 ]
             }
         ],
@@ -166,8 +174,8 @@ if_parent_found_ok_test() ->
 
     Expected1 = { 
         [ 
-            {three, 123}, 
-            {four, 124} 
+            {d, three, 123}, 
+            {d, four, 124} 
         ], 
         three 
     },
@@ -177,25 +185,25 @@ if_parent_found_ok_test() ->
 
 
 if_parent_found_not_found_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [
-                {two, 
+                {c, two, 
                     [
-                        {three, 123},
-                        {four, 124}
+                        {d, three, 123},
+                        {d, four, 124}
                     ]
                 },
-                {three,
+                {c, three,
                     [
-                        {three, 133},
-                        {four, 134}
+                        {d, three, 133},
+                        {d, four, 134}
                     ]
                 }
             ]
         },
-        {two, void}
-    ],
+        {d, two, void}
+    ]},
     Fun = fun(Parent, ChildName)  ->
             {Parent, ChildName}
     end,
@@ -214,25 +222,25 @@ if_parent_found_not_found_test() ->
 
 
 get_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [
-                {two, 
+                {c, two, 
                     [
-                        {three, 123},
-                        {four, 124}
+                        {d, three, 123},
+                        {d, four, 124}
                     ]
                 },
-                {three,
+                {c, three,
                     [
-                        {three, 133},
-                        {four, 134}
+                        {d, three, 133},
+                        {d, four, 134}
                     ]
                 }
             ]
         },
-        {two, void}
-    ],
+        {d, two, void}
+    ]},
 
     Expected = {value, 123},
     Result = erlcfg_node:get(Data, one.two.three),
@@ -247,31 +255,29 @@ get_test() ->
     ?assertEqual(Expected2, Result2).
 
 set_test() ->
-    Data = [],
+    Data = {c, '', []},
     Expected = [
-        {one, []}, 
-        {two, void}
+        {c, one, []}, 
+        {d, two, void}
     ],
 
     D1 = erlcfg_node:set(Data, one, []),
     Data1 = erlcfg_node:set(D1, two, void),
     ?assertEqual(Expected, Data1),
 
-    Expected2 = [
-        {
-            one, 
+    Expected2 = {c, '', [
+        {c, one, 
             [ 
-                {
-                    two, 
+                {c, two, 
                     [ 
-                        {three, 123}, 
-                        {four, 124}
+                        {d, three, 123}, 
+                        {d, four, 124}
                     ]
                 }
             ]
         }, 
-        {two, void}
-    ],
+        {d, two, void}
+    ]},
 
     D2 = erlcfg_node:set(Data1, one.two, []),
     D3 = erlcfg_node:set(D2, one.two.three, 123),

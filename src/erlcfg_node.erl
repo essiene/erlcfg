@@ -8,8 +8,9 @@
 -export([
         node_find/2,
         node_find/3,
-        node_set/3,
-        node_get/2,
+        node_add/2,
+        node_add/3,
+        node_read/2,
         if_parent_found/3,
         if_parent_found/5,
         walk_tree_set_node/5
@@ -18,36 +19,39 @@
 
 
 new() ->
-    [].
+    {c, '', []}.
 
 
 set(IData, Key, Value) when is_atom(Key) ->
     if_parent_found(IData, Key, ?MODULE, walk_tree_set_node, [IData, Key, Value]).
 
 walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
-    node_set(Parent, ChildName, Value);
+    node_add(Parent, ChildName, Value);
 
 walk_tree_set_node(Parent, ChildName, IData, Key, Value) -> 
-    NewValue = node_set(Parent, ChildName, Value), 
+    NewValue = node_add(Parent, ChildName, Value), 
     NewKey = node_addr:parent(Key),
     if_parent_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
 
 
 get(IData, Key) when is_atom(Key) ->
     Fun = fun(Parent, ChildName) ->
-            node_get(Parent, ChildName)
+            node_read(Parent, ChildName)
     end,
     if_parent_found(IData, Key, Fun).
 
-node_set(Node, Key, Value) when is_list(Node), is_atom(Key) ->
-    lists:keystore(Key, 1, Node, {Key, Value}).
+node_add(Node, Key, Value) when is_list(Node), is_atom(Key) ->
+    lists:keystore(Key, 2, Node, {d, Key, Value}).
 
-node_get(Node, Key) when is_list(Node), is_atom(Key) ->
-    case lists:keysearch(Key, 1, Node) of
+node_add(Node, Key) when is_list(Node), is_atom(Key) ->
+    lists:keystore(Key, 2, Node, {c, Key, []}).
+
+node_read(Node, Key) when is_list(Node), is_atom(Key) ->
+    case lists:keysearch(Key, 2, Node) of
         false ->
             {error, undefined};
-        {value, {Key, Value}} ->
-            {value, Value}
+        {value, {Type, Key, Value}} ->
+            {Type, value, Value}
     end.
 
 
