@@ -8,8 +8,8 @@
 -export([
         node_find/2,
         node_find/3,
-        node_add/2,
-        node_add/3,
+        node_write/2,
+        node_write/3,
         node_read/1,
         node_read/2,
         if_parent_found/3,
@@ -27,10 +27,10 @@ set(IData, Key, Value) when is_atom(Key) ->
     if_parent_found(IData, Key, ?MODULE, walk_tree_set_node, [IData, Key, Value]).
 
 walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
-    node_add(Parent, ChildName, Value);
+    node_write(Parent, ChildName, Value);
 
 walk_tree_set_node(Parent, ChildName, IData, Key, Value) -> 
-    NewValue = node_add(Parent, ChildName, Value), 
+    NewValue = node_write(Parent, ChildName, Value), 
     NewKey = node_addr:parent(Key),
     if_parent_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
 
@@ -42,18 +42,22 @@ get(IData, Key) when is_atom(Key) ->
     if_parent_found(IData, Key, Fun).
 
 
-node_add({_Type, _ParentName, _Container}=ParentNode, Key, Value) ->
-    node_add(ParentNode, Key, Value, d).
+node_write({c, _ParentName, _Container}=ParentNode, Key, Value) ->
+    node_write(ParentNode, Key, Value, d);
 
-node_add({_Type, _ParentName, _Container}=ParentNode, Key) ->
-    node_add(ParentNode, Key, [], c).
+node_write({d, _ParentName, _Container}, _Key, _Value) ->
+    {error, data_node_write_child}.
 
-node_add({c, ParentName, Container}, Key, Value, Type) when is_list(Container), is_atom(Key) ->
+node_write({c, _ParentName, _Container}=ParentNode, Key) ->
+    node_write(ParentNode, Key, [], c);
+
+node_write({d, NodeName, _OldValue}, Value) ->
+    {d, NodeName, Value}.
+
+node_write({c, ParentName, Container}, Key, Value, Type) when is_list(Container), is_atom(Key) ->
     NewContainer = lists:keystore(Key, 2, Container, {Type, Key, Value}),
-    {c, ParentName, NewContainer};
+    {c, ParentName, NewContainer}.
 
-node_add({d, _ParentName, _Container}, _Key, _Value, _Type) ->
-    {error, data_node_add}.
 
 node_read({c, _ParentName, Container}, Key) when is_list(Container), is_atom(Key) ->
     case lists:keysearch(Key, 2, Container) of

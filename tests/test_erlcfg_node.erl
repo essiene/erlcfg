@@ -8,14 +8,14 @@
 node_new_test() ->
     ?assertEqual({c, '', []}, erlcfg_node:new()).
 
-node_add_test() ->
+node_write_test() ->
     Node = {c, '', []},
     Expected = {c, '', [
         {d, one, 1},
         {c, two, []}
     ]},
-    R1 = erlcfg_node:node_add(Node, one, 1),
-    Result = erlcfg_node:node_add(R1, two),
+    R1 = erlcfg_node:node_write(Node, one, 1),
+    Result = erlcfg_node:node_write(R1, two),
     ?assertEqual(Expected, Result),
 
     Expected1 = {c, '', [
@@ -24,7 +24,7 @@ node_add_test() ->
         {d, three, 3}
     ]},
 
-    Result1 = erlcfg_node:node_add(Result, three, 3),
+    Result1 = erlcfg_node:node_write(Result, three, 3),
     ?assertEqual(Expected1, Result1).
 
 
@@ -37,7 +37,7 @@ node_singlecontent_add_test() ->
         {d, bar, baz},
         {d, foo, bar}
     ]},
-    Result = erlcfg_node:node_add(Node, foo, bar),
+    Result = erlcfg_node:node_write(Node, foo, bar),
     ?assertEqual(Expected, Result).
 
 node_multiplecontent_multipleadd_collision_test() ->
@@ -52,7 +52,7 @@ node_multiplecontent_multipleadd_collision_test() ->
         {d, foo, bar}
     ]},
 
-    Result = erlcfg_node:node_add(Node, foo, bar),
+    Result = erlcfg_node:node_write(Node, foo, bar),
     ?assertEqual(Expected, Result),
 
     Expected1 = {c, '', [
@@ -61,17 +61,27 @@ node_multiplecontent_multipleadd_collision_test() ->
         {d, foo, bar}
     ]},
 
-    Result1 = erlcfg_node:node_add(Result, bar, foo),
+    Result1 = erlcfg_node:node_write(Result, bar, foo),
     ?assertEqual(Expected1, Result1).
 
-node_add_to_data_node_test() ->
+node_write_child_to_data_node_test() ->
     Node = {d, bar, baz},
 
-    Expected = {error, data_node_add},
-    Result = erlcfg_node:node_add(Node, bar, bar),
+    Expected = {error, data_node_write_child},
+    Result = erlcfg_node:node_write(Node, bar, foo),
     ?assertEqual(Expected, Result),
 
-    Result1 = erlcfg_node:node_add(Node, bar),
+    Result1 = erlcfg_node:node_write(Node, bar, faa),
+    ?assertEqual(Expected, Result1).
+
+node_write_to_data_node_test() ->
+    Node = {d, bar, baz},
+
+    Expected = {d, bar, bar},
+    Result = erlcfg_node:node_write(Node, bar),
+    ?assertEqual(Expected, Result),
+
+    Result1 = erlcfg_node:node_write(Node, bar),
     ?assertEqual(Expected, Result1).
 
 node_read_when_empty_test() ->
