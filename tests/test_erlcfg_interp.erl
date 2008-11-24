@@ -3,7 +3,7 @@
 
 
 new_test() ->
-    ?assertEqual([], erlcfg_interp:new()).
+    ?assertEqual({c, '', []}, erlcfg_interp:new()).
 
 eval_val_with_empty_interp_test() ->
     Interp = erlcfg_interp:new(),
@@ -11,13 +11,13 @@ eval_val_with_empty_interp_test() ->
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, {val, foo, nil})).
 
 eval_val_with_nonempty_interp_test() ->
-    Interp = [{foo, bar}, {bar, baz}],
+    Interp = {c, '', [{d, foo, bar}, {d, bar, baz}]},
     Expected = {Interp, 5},
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, {val, 5, nil})).
 
 eval_set_test()  ->
     Interp = erlcfg_interp:new(),
-    Expected = {[{foo, bar}], bar},
+    Expected = {{c, '', [{d, foo, bar}]}, bar},
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, {set, foo, bar})).
 
 eval_set_no_parent_test()  ->
