@@ -1,7 +1,8 @@
 -module(node_addr).
 -export([
         basename/1,
-        parent/1
+        parent/1,
+        emancipate/1
     ]).
 
 -export([

@@ -277,10 +277,10 @@ get_test() ->
 
 set_test() ->
     Data = {c, '', []},
-    Expected = [
+    Expected = {c, '', [
         {c, one, []}, 
         {d, two, void}
-    ],
+    ]},
 
     D1 = erlcfg_node:set(Data, one, []),
     Data1 = erlcfg_node:set(D1, two, void),

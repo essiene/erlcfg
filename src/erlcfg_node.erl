@@ -22,17 +22,21 @@
 new() ->
     {c, '', []}.
 
-
 set(IData, Address, Value) when is_atom(Address) ->
-    if_node_found(IData, Address, ?MODULE, walk_tree_set_node, [IData, Address, Value]).
+    {ParentAddress, Key} = node_addr:emancipate(Address),
+    if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key, Value]).
 
-walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
-    node_write(Parent, ChildName, Value);
+walk_tree_set_node(Node, _IData, '', Key, Value) ->
+    util:logmessage({new_idata_node, Node, Key, Value}),
+    node_write(Node, Key, Value);
 
-walk_tree_set_node(Parent, ChildName, IData, Key, Value) -> 
-    NewValue = node_write(Parent, ChildName, Value), 
-    NewKey = node_addr:parent(Key),
-    if_node_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
+walk_tree_set_node(Node, IData, Address, Key, Value) -> 
+    {c, _NodeName, _Container=NewValue} = node_write(Node, Key, Value), 
+    util:logmessage({written, Address, Key, Value}),
+    {ParentAddress, NewKey} = node_addr:emancipate(Address),
+    util:logmessage({ParentAddress, NewKey}),
+    if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
+
 
 
 get(IData, Address) when is_atom(Address) ->
@@ -41,6 +45,8 @@ get(IData, Address) when is_atom(Address) ->
     end,
     if_node_found(IData, Address, Fun).
 
+node_write({c, _ParentName, _Container}=ParentNode, Key, Value) when is_list(Value) ->
+    node_write(ParentNode, Key, Value, c);
 
 node_write({c, _ParentName, _Container}=ParentNode, Key, Value) ->
     node_write(ParentNode, Key, Value, d);
@@ -57,7 +63,6 @@ node_write({d, NodeName, _OldValue}, Value) ->
 node_write({c, ParentName, Container}, Key, Value, Type) when is_list(Container), is_atom(Key) ->
     NewContainer = lists:keystore(Key, 2, Container, {Type, Key, Value}),
     {c, ParentName, NewContainer}.
-
 
 node_read({c, _ParentName, Container}, Key) when is_list(Container), is_atom(Key) ->
     case lists:keysearch(Key, 2, Container) of
@@ -97,7 +102,10 @@ node_find([CurrentKey | Rest]=_RemainingKeys, ProcessedKeys, {c, _ParentName, Co
     end;
 
 node_find([CurrentKey | _Rest]=_RemainingKeys, ProcessedKeys, {d, _ParentName, _Value}) ->
-    {not_found, lists:reverse([CurrentKey | ProcessedKeys])}.
+    {not_found, lists:reverse([CurrentKey | ProcessedKeys])};
+
+node_find([_CurrentKey | _Rest]=_RemainingKeys, _ProcessedKeys, {not_found, InvalidAddress}) ->
+    {not_found, InvalidAddress}.
 
 
 if_node_found(IData, Address, Fun) ->
