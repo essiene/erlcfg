@@ -30,7 +30,7 @@ Rules.
     {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
 
 "({ALPHANUM}|{PUNCT_STRING})*" :
-    {token, {string, TokenLine, peel(TokenChars, TokenLen, 1)}}.
+    {token, {string, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 1))}}.
 
 
 = :

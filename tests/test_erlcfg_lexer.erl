@@ -53,28 +53,28 @@ multiple_atom_test() ->
     ?assertEqual({ok, [{quoted_atom, 1, foo}, {quoted_atom, 1, bar}, {quoted_atom, 2, baz}], 2}, erlcfg_lexer:string("'foo' 'bar'\n\t'baz'")).
 
 string_test() ->
-    ?assertEqual({ok, [{string, 1, "foo"}], 1}, erlcfg_lexer:string("\"foo\"")),
-    ?assertEqual({ok, [{string, 1, "foo"}], 1}, erlcfg_lexer:string("\"foo\"")),
-    ?assertEqual({ok, [{string, 1, "+1.0e-10"}], 1}, erlcfg_lexer:string("\"+1.0e-10\"")),
-    ?assertEqual({ok, [{string, 1, "foo-dot-com"}], 1}, erlcfg_lexer:string("\"foo-dot-com\"")),
-    ?assertEqual({ok, [{string, 1, "_foo-dot_com and lots lost lots !!! more#@!"}], 1}, erlcfg_lexer:string("\"_foo-dot_com and lots lost lots !!! more#@!\"")).
+    ?assertEqual({ok, [{string, 1, <<"foo">>}], 1}, erlcfg_lexer:string("\"foo\"")),
+    ?assertEqual({ok, [{string, 1, <<"foo">>}], 1}, erlcfg_lexer:string("\"foo\"")),
+    ?assertEqual({ok, [{string, 1, <<"+1.0e-10">>}], 1}, erlcfg_lexer:string("\"+1.0e-10\"")),
+    ?assertEqual({ok, [{string, 1, <<"foo-dot-com">>}], 1}, erlcfg_lexer:string("\"foo-dot-com\"")),
+    ?assertEqual({ok, [{string, 1, <<"_foo-dot_com and lots lost lots !!! more#@!">>}], 1}, erlcfg_lexer:string("\"_foo-dot_com and lots lost lots !!! more#@!\"")).
 
 multiple_string_test() ->
-    ?assertEqual({ok, [{string, 1, "foo"}, {string, 1, "bar"}, {string, 1, "baz"}], 1}, erlcfg_lexer:string("\"foo\" \"bar\" \"baz\"")),
+    ?assertEqual({ok, [{string, 1, <<"foo">>}, {string, 1, <<"bar">>}, {string, 1, <<"baz">>}], 1}, erlcfg_lexer:string("\"foo\" \"bar\" \"baz\"")),
     ?assertEqual({ok, 
             [ 
-                {string, 1, "foo bar"}, 
-                {string, 1, "bar"}, 
-                {string, 2, "baz frob"}
+                {string, 1, <<"foo bar">>}, 
+                {string, 1, <<"bar">>}, 
+                {string, 2, <<"baz frob">>}
             ], 2}, 
         
         erlcfg_lexer:string("\"foo bar\" \"bar\"\n\t\"baz frob\"")).
 
 string_with_spaces_test() ->
     ?assertEqual({ok, [
-                {string, 1, "foo with bar"},
-                {string, 1, "with a\ttab"},
-                {string, 1, "and \na \nnew line"}
+                {string, 1, <<"foo with bar">>},
+                {string, 1, <<"with a\ttab">>},
+                {string, 1, <<"and \na \nnew line">>}
             ], 3},
         erlcfg_lexer:string("\"foo with bar\" \"with a\ttab\" \"and \na \nnew line\"")).
 
@@ -93,5 +93,5 @@ spaces() ->
 
 whitespace_test() ->
     ?assertEqual({ok, [{integer, 2, 1}], 3}, erlcfg_lexer:string("#1 1 1\n1#111\n#1.0")),
-    ?assertEqual({ok, [{integer, 2, 3}, {float, 2, -2.11e-15}, {atom, 2, foo_dot_com}, {string, 2, "a random.long#string"}], 3}, erlcfg_lexer:string(" #A line of comments beginning with space\n+3 -2.11e-15 foo_dot_com \"a random.long#string\" #some comments\n#another line of comments")).
+    ?assertEqual({ok, [{integer, 2, 3}, {float, 2, -2.11e-15}, {atom, 2, foo_dot_com}, {string, 2, <<"a random.long#string">>}], 3}, erlcfg_lexer:string(" #A line of comments beginning with space\n+3 -2.11e-15 foo_dot_com \"a random.long#string\" #some comments\n#another line of comments")).
 

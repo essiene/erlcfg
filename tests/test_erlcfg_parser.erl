@@ -32,9 +32,9 @@ parse_quoted_atom_assignment_test() ->
     ?assertEqual(Expected, Result).
 
 parse_string_assignment_test() ->
-    Tokens = [{atom, 1, foo}, {'=', 1}, {string, 1, "A String"}, {';', 1}],
+    Tokens = [{atom, 1, foo}, {'=', 1}, {string, 1, <<"A String">>}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, "A String", noop}}, []]},
+    Expected = {ok, [{set, foo, {val, <<"A String">>, noop}}, []]},
     ?assertEqual(Expected, Result).
 
 parse_variable_assignment_test() ->
@@ -49,7 +49,7 @@ parse_mixed_assignment_test() ->
         {atom, 1, foo}, {'=', 1}, {integer, 1, 51}, {';', 1},
         {atom, 1, foo}, {'=', 1}, {float, 1, -51.0e-10}, {';', 1},
         {atom, 1, foo}, {'=', 1}, {atom, 1, foo51}, {';', 1},
-        {atom, 1, foo}, {'=', 1}, {string, 1, "A String"}, {';', 1},
+        {atom, 1, foo}, {'=', 1}, {string, 1, <<"A String">>}, {';', 1},
         {atom, 1, foo}, {'=', 1}, {variable, 1, foo.bar}, {';', 1}
     ],
     Result = erlcfg_parser:parse(Tokens),
@@ -58,7 +58,7 @@ parse_mixed_assignment_test() ->
             [{set, foo, {val, 51, noop}},
                 [{set, foo, {val, -51.0e-10, noop}}, 
                     [{set, foo, {val, foo51, noop}}, 
-                        [{set, foo, {val, "A String", noop}}, 
+                        [{set, foo, {val, <<"A String">>, noop}}, 
                             [{set, foo, {val, {get, foo.bar, noop}, noop}}, []]
                         ]
                     ]
