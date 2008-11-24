@@ -21,6 +21,6 @@ join_test() ->
 
 split_test() ->
     ?assertEqual([], node_addr:split('')),
-    ?assertEqual(['', foo], node_addr:split(foo)),
+    ?assertEqual([foo], node_addr:split(foo)),
     ?assertEqual([foo, bar], node_addr:split(foo.bar)),
     ?assertEqual([foo, bar, baz], node_addr:split(foo.bar.baz)).

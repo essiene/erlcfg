@@ -31,16 +31,13 @@ join([H | _Rest]=NodeAddrList) when is_list(NodeAddrList), is_atom(H) ->
 
 split(NodeAddr) when is_atom(NodeAddr) ->
     StrAddr = atom_to_list(NodeAddr),
-    case string:tokens(StrAddr, ".") of
-        [Single] ->
-            ['', list_to_atom(Single)];
-        StrList ->
-            StrList2AtomList = fun (Item) -> 
-                    list_to_atom(Item)
-            end,
+    StrList = string:tokens(StrAddr, "."),
 
-            lists:map(StrList2AtomList, StrList)
-    end.
+    StrList2AtomList = fun (Item) -> 
+            list_to_atom(Item)
+    end,
+
+    lists:map(StrList2AtomList, StrList).
 
 
 emancipate('') ->
