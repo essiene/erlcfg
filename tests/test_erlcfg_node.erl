@@ -1,7 +1,7 @@
 -module(test_erlcfg_node).
 -include_lib("eunit/include/eunit.hrl").
 -export([
-        parent_found_mfa/2
+        node_found_mfa/1
     ]).
 
 
@@ -161,11 +161,11 @@ node_read_from_container_node_test() ->
     ?assertEqual(Expected, Result).
 
 
-parent_found_mfa(Parent, ChildName)  -> 
-    {Parent, ChildName}.
+node_found_mfa(Node)  -> 
+    {boo, foo, Node}.
 
 
-if_parent_found_ok_test() ->
+if_node_found_ok_test() ->
     Data = {c, '', [
         {c, one, 
             [
@@ -186,45 +186,26 @@ if_parent_found_ok_test() ->
         {d, two, void}
     ]},
 
-    Fun = fun(Parent, ChildName)  ->
-            {Parent, ChildName}
+    Fun = fun(Node)  ->
+            {boo, foo, Node}
     end,
 
-    Expected = {
-        [ 
-            {c, two, 
-                [
+    Expected = {boo, foo, {c, two, [
                     {d, three, 123}, 
                     {d, four, 124} 
                 ]
-            },
-            {c, three,
-                [
-                    {d, three, 133},
-                    {d, four, 134}
-                ]
-            }
-        ],
+            }},
 
-        two
-    },
-
-    Result = erlcfg_node:if_parent_found(Data, one.two, Fun),
+    Result = erlcfg_node:if_node_found(Data, one.two, Fun),
     ?assertEqual(Expected, Result),
 
-    Expected1 = { 
-        [ 
-            {d, three, 123}, 
-            {d, four, 124} 
-        ], 
-        three 
-    },
+    Expected1 = {boo, foo, {d, three, 123}}, 
 
-    Result1 = erlcfg_node:if_parent_found(Data, one.two.three, ?MODULE, parent_found_mfa, []),
+    Result1 = erlcfg_node:if_node_found(Data, one.two.three, ?MODULE, node_found_mfa, []),
     ?assertEqual(Expected1, Result1).
 
 
-if_parent_found_not_found_test() ->
+if_node_found_not_found_test() ->
     Data = {c, '', [
         {c, one, 
             [
@@ -244,20 +225,20 @@ if_parent_found_not_found_test() ->
         },
         {d, two, void}
     ]},
-    Fun = fun(Parent, ChildName)  ->
-            {Parent, ChildName}
+    Fun = fun(Node)  ->
+            {boo, foo, Node}
     end,
 
     Expected = {not_found, one.two.five},
-    Result = erlcfg_node:if_parent_found(Data, one.two.five.six, Fun),
+    Result = erlcfg_node:if_node_found(Data, one.two.five.six, Fun),
     ?assertEqual(Expected, Result),
 
     Expected1 = {not_found, one.three.three.four},
-    Result1 = erlcfg_node:if_parent_found(Data, one.three.three.four.five.six.seven, Fun),
+    Result1 = erlcfg_node:if_node_found(Data, one.three.three.four.five.six.seven, Fun),
     ?assertEqual(Expected1, Result1),
 
     Expected2 = {not_found, three},
-    Result2 = erlcfg_node:if_parent_found(Data, three.four.five, Fun),
+    Result2 = erlcfg_node:if_node_found(Data, three.four.five, Fun),
     ?assertEqual(Expected2, Result2).
 
 
