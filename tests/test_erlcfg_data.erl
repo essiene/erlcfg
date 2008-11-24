@@ -3,27 +3,27 @@
 
 
 get_onelevel_single_test() ->
-    Data = [
-        {foo, 5}
-    ],
+    Data = {c, '', [
+        {d, foo, 5}
+    ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(foo)).
 
 get_onelevel_dual_test() ->
-    Data = [
-        {foo, 5}, 
-        {bar, baz}
-    ],
+    Data = {c, '', [
+        {d, foo, 5}, 
+        {d, bar, baz}
+    ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(foo)),
     ?assertEqual({value, baz}, Config:get(bar)).
 
 get_onelevel_multi_test() ->
-    Data = [
-        {int, 5}, 
-        {atom, baz}, 
-        {string, "A string"}
-    ],
+    Data = {c, '', [
+        {d, int, 5}, 
+        {d, atom, baz}, 
+        {d, string, <<"A string">>}
+    ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(int)),
     ?assertEqual({value, baz}, Config:get(atom)), 
@@ -31,53 +31,53 @@ get_onelevel_multi_test() ->
 
 
 get_twolevels_test() ->
-    Data = [
-        {foo, 
+    Data = {c, '', [
+        {c, foo, 
             [
-                {int, 5}, 
-                {float, 5.0}
+                {d, int, 5}, 
+                {d, float, 5.0}
             ]
         }
-    ],
+    ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual({value, 5}, Config:get(foo.int)), 
     ?assertEqual({value, 5.0}, Config:get(foo.float)).
 
 get_multi_level_nested_test() ->
-    Data = [
-        {one, 
+    Data = {c, '', [
+        {c, one, 
             [ 
-                {one, 11}, 
-                {two, 12},
-                {three, 
+                {d, one, 11}, 
+                {d, two, 12},
+                {c, three, 
                     [ 
-                        {one, 131}, 
-                        {two, 132} 
+                        {d, one, 131}, 
+                        {d, two, 132} 
                     ]
                 }
             ]
         },
 
-        {two, 
+        {c, two, 
             [ 
-                {one, 
+                {c, one, 
                     [ 
-                        {one, 211}, 
-                        {two, 212} 
+                        {d, one, 211}, 
+                        {d, two, 212} 
                     ]
                 },
 
-                {two, 
+                {c, two, 
                     [ 
-                        {one, 221}, 
-                        {two, 222} 
+                        {d, one, 221}, 
+                        {d, two, 222} 
                     ]
                 }
             ]
         }
 
 
-    ],
+    ]},
 
     Config = erlcfg_data:new(Data),
 
