@@ -12,8 +12,8 @@
         node_write/3,
         node_read/1,
         node_read/2,
-        if_parent_found/3,
-        if_parent_found/5,
+        if_node_found/3,
+        if_node_found/5,
         walk_tree_set_node/5
     ]).
 
@@ -23,8 +23,8 @@ new() ->
     {c, '', []}.
 
 
-set(IData, Key, Value) when is_atom(Key) ->
-    if_parent_found(IData, Key, ?MODULE, walk_tree_set_node, [IData, Key, Value]).
+set(IData, Address, Value) when is_atom(Address) ->
+    if_node_found(IData, Address, ?MODULE, walk_tree_set_node, [IData, Address, Value]).
 
 walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
     node_write(Parent, ChildName, Value);
@@ -32,14 +32,14 @@ walk_tree_set_node(Parent, ChildName, Parent, _Key, Value) ->
 walk_tree_set_node(Parent, ChildName, IData, Key, Value) -> 
     NewValue = node_write(Parent, ChildName, Value), 
     NewKey = node_addr:parent(Key),
-    if_parent_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
+    if_node_found(IData, NewKey, ?MODULE, walk_tree_set_node, [IData, NewKey, NewValue]).
 
 
-get(IData, Key) when is_atom(Key) ->
-    Fun = fun(Parent, ChildName) ->
-            node_read(Parent, ChildName)
+get(IData, Address) when is_atom(Address) ->
+    Fun = fun(Node) ->
+            node_read(Node)
     end,
-    if_parent_found(IData, Key, Fun).
+    if_node_found(IData, Address, Fun).
 
 
 node_write({c, _ParentName, _Container}=ParentNode, Key, Value) ->
@@ -100,18 +100,16 @@ node_find([CurrentKey | _Rest]=_RemainingKeys, ProcessedKeys, {d, _ParentName, _
     {not_found, lists:reverse([CurrentKey | ProcessedKeys])}.
 
 
-if_parent_found(IData, Key, Fun) ->
-    ParentName = node_addr:parent(Key),
-    case node_find(IData, ParentName) of
-        {node, Parent} ->
-            ChildName = node_addr:basename(Key),
-            Fun(Parent, ChildName);
+if_node_found(IData, Address, Fun) ->
+    case node_find(IData, Address) of
         {not_found, InvalidAddress} ->
-            {not_found, InvalidAddress}
+            {not_found, InvalidAddress};
+        Node ->
+            Fun(Node)
     end.
 
-if_parent_found(IData, Key, Mod, Fun, Args) ->
-    Fun_Mfa = fun(Parent, ChildName) -> 
-            apply(Mod, Fun, [Parent, ChildName | Args])
+if_node_found(IData, Address, Mod, Fun, Args) ->
+    Fun_Mfa = fun(Node) -> 
+            apply(Mod, Fun, [Node | Args])
     end,
-    if_parent_found(IData, Key, Fun_Mfa).
+    if_node_found(IData, Address, Fun_Mfa).
