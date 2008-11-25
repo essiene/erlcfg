@@ -1,8 +1,8 @@
 Nonterminals
-assignments assignment key value data.
+assignments assignment key value data block.
 
 Terminals 
-integer float atom quoted_atom string bool variable '=' ';'.
+integer float atom quoted_atom string bool variable '=' ';' '{' '}'.
 
 Rootsymbol assignments.
 
@@ -22,6 +22,9 @@ data -> quoted_atom: get_value('$1').
 data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
 data -> variable   : {get, get_value('$1'), noop}.
+data -> block      : {block, $1, noop}.
+
+block -> '{' assignments '}'    : $1.
 
 Erlang code.
 %nothing
