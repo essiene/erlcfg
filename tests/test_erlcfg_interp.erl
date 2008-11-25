@@ -38,3 +38,8 @@ eval_set_no_parent_test()  ->
     {Interp1, bar} = erlcfg_interp:eval(Interp, {set, foo, bar}),
     Expected = {not_found, foo.foo},
     ?assertThrow(Expected, erlcfg_interp:eval(Interp1, {set, foo.foo.bar, bar})).
+
+eval_illegal_command_test()  ->
+    Interp = erlcfg_interp:new(),
+    Expected = {illegal_command, {read, moo, noop}},
+    ?assertThrow(Expected, erlcfg_interp:eval(Interp, {read, moo, noop})).
