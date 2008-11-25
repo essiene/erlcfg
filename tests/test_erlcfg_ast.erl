@@ -10,3 +10,13 @@ erlcfg_traverse_single_set_test() ->
         ]
     },
     ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).
+
+erlcfg_traverse_single_get_test() ->
+    Ast = [{get, one, nil}, []],
+    Expected = {not_found, one},
+    ?assertThrow(Expected, erlcfg_ast:traverse(Ast)).
+
+erlcfg_traverse_single_val_test() ->
+    Ast = [{val, -1.5e-15, nil}, []],
+    Expected = {c, '', []},
+    ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).
