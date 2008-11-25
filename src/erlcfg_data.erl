@@ -13,7 +13,7 @@ get(Key) ->
     convert(erlcfg_node:get(Node, Key)).
 
 convert({value, Value}) when is_binary(Value) ->
-    {value, binary_to_list(Value)};
+    binary_to_list(Value);
 
-convert(Value) ->
+convert({value, Value}) ->
     Value.
