@@ -28,7 +28,7 @@ eval_set_nested_val_test()  ->
 eval_set_nested_get_test()  ->
     I = erlcfg_interp:new(),
     {I1, bar} = erlcfg_interp:eval(I, {set, foo, {val, bar, nil}}),
-    {Interp, bar} = erlcfg_interp:eval(I1, {set, moo, {get, foo, nil}}),
+    {Interp, bar} = erlcfg_interp:eval(I1, {set, moo, {val, {get, foo, nil}, nil}}),
 
     Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, bar},
     ?assertEqual(Expected, {Interp, bar}).

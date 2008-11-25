@@ -9,7 +9,7 @@ new() ->
     erlcfg_node:new().
 
 eval(State, {val, Data, _Ignore}) ->
-    {State, Data};
+    eval(State, Data);
 
 eval(State, {get, Address, _Ignore}) ->
    case erlcfg_node:get(State, Address) of
