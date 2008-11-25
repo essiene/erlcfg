@@ -25,4 +25,10 @@ eval(State, {set, Address, Value}) ->
             throw({not_found, InvalidAddress});
         NewState ->
             {NewState, Value}
-    end.
+    end;
+
+eval(State, Data) when is_number(Data); is_atom(Data); is_binary(Data) ->
+    {State, Data};
+
+eval(_State, Unknown) ->
+    throw({illegal_command, Unknown}).
