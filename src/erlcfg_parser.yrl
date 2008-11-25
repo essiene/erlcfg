@@ -22,9 +22,9 @@ data -> quoted_atom: get_value('$1').
 data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
 data -> variable   : {get, get_value('$1'), noop}.
-data -> block      : {block, $1, noop}.
+data -> block      : {block, '$1', noop}.
 
-block -> '{' assignments '}'    : $1.
+block -> '{' assignments '}'    : '$2'.
 
 Erlang code.
 %nothing

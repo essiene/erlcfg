@@ -43,6 +43,64 @@ parse_variable_assignment_test() ->
     Expected = {ok, [{set, foo, {val, {get, foo.bar, noop}, noop}}, []]},
     ?assertEqual(Expected, Result).
 
+parse_single_block_assignment_test() ->
+    Tokens = [{atom, 1, foo}, {'=', 1}, {'{', 1}, {atom, 1, foo}, {'=', 1}, {atom, 1, moo}, {';', 1}, {'}', 1}, {';', 1}],
+    Result = erlcfg_parser:parse(Tokens),
+    Expected = {ok, [{set, foo, {val, {block,[{set, foo, {val, moo, noop}}, []], noop}, noop}}, []]},
+    ?assertEqual(Expected, Result).
+
+parse_single_nested_blocks_assignment_test() ->
+    Tokens = [
+        {atom, 1, foo}, {'=', 1}, {'{', 1}, 
+            {atom, 1, foo}, {'=', 1}, {atom, 1, moo}, {';', 1}, 
+            {atom, 1, foo1}, {'=', 1}, {atom, 1, moo1}, {';', 1}, 
+            {atom, 1, foo2}, {'=', 1}, {'{', 1},
+                {atom, 1, foo}, {'=', 1}, {atom, 1, moo}, {';', 1}, 
+                {atom, 1, foo1}, {'=', 1}, {atom, 1, moo1}, {';', 1}, 
+            {'}', 1}, {';', 1},
+        {'}', 1}, {';', 1}
+    ],
+    Result = erlcfg_parser:parse(Tokens),
+    Expected = 
+    {ok, 
+        [ 
+            {set, foo, 
+                {val, 
+                    {block, 
+                        [
+                            {set, foo, {val, moo, noop}}, 
+                            [
+                                {set, foo1, {val, moo1, noop}}, 
+                                [
+                                    {set, foo2, 
+                                        {val, 
+                                            {block, 
+                                                [
+                                                    {set, foo, {val, moo, noop}}, 
+                                                    [
+                                                        {set, foo1, {val, moo1, noop}}, 
+                                                        []
+                                                    ]
+                                                ], 
+                                                noop
+                                            }, 
+                                            noop
+                                        }
+                                    }, 
+                                    []
+                                ]
+                            ]
+                        ], 
+                        noop
+                    },
+                    noop
+                }
+            }, 
+            [] 
+        ]
+    },
+    ?assertEqual(Expected, Result).
+
 parse_mixed_assignment_test() ->
     Tokens = [
         {atom, 1, foo}, {'=', 1}, {bool, 1, false}, {';', 1},
@@ -67,3 +125,5 @@ parse_mixed_assignment_test() ->
         ]
     },
     ?assertEqual(Expected, Result).
+
+
