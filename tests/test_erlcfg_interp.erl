@@ -27,11 +27,11 @@ eval_set_nested_val_test()  ->
 
 eval_set_nested_get_test()  ->
     I = erlcfg_interp:new(),
-    I1 = erlcfg_interp:eval(I, {set, foo, {val, bar, nil}}),
-    Interp = erlcfg_interp:eval(I1, {set, moo, {get, foo, nil}}),
+    {I1, bar} = erlcfg_interp:eval(I, {set, foo, {val, bar, nil}}),
+    {Interp, bar} = erlcfg_interp:eval(I1, {set, moo, {get, foo, nil}}),
 
     Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, bar},
-    ?assertEqual(Expected, Interp).
+    ?assertEqual(Expected, {Interp, bar}).
 
 eval_set_no_parent_test()  ->
     Interp = erlcfg_interp:new(),

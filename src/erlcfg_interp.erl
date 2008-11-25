@@ -13,18 +13,20 @@ eval(State, {val, Data, _Ignore}) ->
 
 eval(State, {get, Address, _Ignore}) ->
    case erlcfg_node:get(State, Address) of
-       {State, Value} ->
+       {value, Value} ->
            {State, Value};
        {not_found, InvalidAddress} ->
            throw({not_found, InvalidAddress})
    end;
 
 eval(State, {set, Address, Value}) ->
-    case erlcfg_node:set(State, Address, Value) of
+    {NewState, Op2Value} = eval(State, Value),
+
+    case erlcfg_node:set(NewState, Address, Op2Value) of
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress});
-        NewState ->
-            {NewState, Value}
+        NewState2 ->
+            {NewState2, Op2Value}
     end;
 
 eval(State, Data) when is_number(Data); is_atom(Data); is_binary(Data) ->
