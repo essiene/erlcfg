@@ -27,14 +27,11 @@ set(IData, Address, Value) when is_atom(Address) ->
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key, Value]).
 
 walk_tree_set_node(Node, _IData, '', Key, Value) ->
-    util:logmessage({new_idata_node, Node, Key, Value}),
     node_write(Node, Key, Value);
 
 walk_tree_set_node(Node, IData, Address, Key, Value) -> 
     {c, _NodeName, _Container=NewValue} = node_write(Node, Key, Value), 
-    util:logmessage({written, Address, Key, Value}),
     {ParentAddress, NewKey} = node_addr:emancipate(Address),
-    util:logmessage({ParentAddress, NewKey}),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
 
