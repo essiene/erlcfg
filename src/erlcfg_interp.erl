@@ -20,15 +20,27 @@ eval(State, CurrentBlock, {get, Address, _Ignore}) ->
    end;
 
 eval(State, CurrentBlock, {set, Address, Value}) ->
-    {NewState, NewBlock, Op2Value} = eval(State, CurrentBlock, Value),
+    {NewState, CurrentBlock, Op2Value} = eval(State, CurrentBlock, Value),
 
-    FullAddress = node_addr:join([NewBlock, Address]),
+    FullAddress = node_addr:join([CurrentBlock, Address]),
     case erlcfg_node:set(NewState, FullAddress, Op2Value) of
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress});
         NewState2 ->
-            {NewState2, NewBlock, Op2Value}
+            {NewState2, CurrentBlock, Op2Value}
     end;
+
+eval(State, CurrentBlock, {block, Address, _Ignore}) ->
+    FullAddress = node_addr:join([CurrentBlock, Address]),
+    {NewState, CurrentBlock, []} = eval(State, CurrentBlock, {set, FullAddress, []}),
+    {NewState, FullAddress, []};
+
+eval(State, CurrentBlock, {endblock, _Ignore, _Ignore}) ->
+    NewBlock = node_addr:parent(CurrentBlock),
+    {State, NewBlock, CurrentBlock};
+
+eval(State, CurrentBlock, []) ->
+    {State, CurrentBlock, []};
 
 eval(State, CurrentBlock, Data) when is_number(Data); is_atom(Data); is_binary(Data) ->
     {State, CurrentBlock, Data};

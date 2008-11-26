@@ -33,6 +33,21 @@ eval_set_nested_get_test()  ->
     Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, '', bar},
     ?assertEqual(Expected, {Interp, '', bar}).
 
+eval_block_test() ->
+    I = erlcfg_interp:new(),
+    Result = erlcfg_interp:eval(I, '', {block, foo, noop}),
+
+    Expected = {{c, '', [{c, foo, []}]}, foo, []},
+    ?assertEqual(Expected, Result).
+
+eval_endblock_test() ->
+    I = erlcfg_interp:new(),
+    {I1, foo, []} = erlcfg_interp:eval(I, '', {block, foo, noop}),
+    Result = erlcfg_interp:eval(I1, foo, {endblock, noop, noop}),
+
+    Expected = {{c, '', [{c, foo, []}]}, '', foo},
+    ?assertEqual(Expected, Result).
+
 eval_set_no_parent_test()  ->
     Interp = erlcfg_interp:new(),
     {Interp1, '', bar} = erlcfg_interp:eval(Interp, '', {set, foo, bar}),
