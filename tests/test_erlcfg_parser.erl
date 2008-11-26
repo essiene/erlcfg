@@ -46,7 +46,7 @@ parse_variable_assignment_test() ->
 parse_single_block_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {'{', 1}, {atom, 1, foo}, {'=', 1}, {atom, 1, moo}, {';', 1}, {'}', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, {block,[{set, foo, {val, moo, noop}}, []], noop}, noop}}, []]},
+    Expected = {ok, [[{block, foo, noop}, [{set, foo, {val, moo, noop}}, []], {endblock, noop, noop}],[]]},
     ?assertEqual(Expected, Result).
 
 parse_single_nested_blocks_assignment_test() ->
@@ -61,42 +61,34 @@ parse_single_nested_blocks_assignment_test() ->
         {'}', 1}, {';', 1}
     ],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = 
-    {ok, 
-        [ 
-            {set, foo, 
-                {val, 
-                    {block, 
+    Expected = {ok,
+        [
+            [
+                {block, foo, noop}, 
+                [
+                    {set, foo, {val, moo, noop}},
+                    [
+                        {set, foo1, {val, moo1, noop}},
                         [
-                            {set, foo, {val, moo, noop}}, 
                             [
-                                {set, foo1, {val, moo1, noop}}, 
+                                {block, foo2, noop}, 
                                 [
-                                    {set, foo2, 
-                                        {val, 
-                                            {block, 
-                                                [
-                                                    {set, foo, {val, moo, noop}}, 
-                                                    [
-                                                        {set, foo1, {val, moo1, noop}}, 
-                                                        []
-                                                    ]
-                                                ], 
-                                                noop
-                                            }, 
-                                            noop
-                                        }
-                                    }, 
-                                    []
-                                ]
-                            ]
-                        ], 
-                        noop
-                    },
-                    noop
-                }
-            }, 
-            [] 
+                                    {set, foo, {val, moo, noop}},
+                                    [
+                                        {set, foo1, {val, moo1, noop}},
+                                        []
+                                    ]
+                                
+                                ], 
+                                {endblock, noop, noop}
+                            ],
+                            []
+                        ]
+                    ]
+                ],
+                {endblock, noop, noop}
+            ], 
+            []
         ]
     },
     ?assertEqual(Expected, Result).
