@@ -15,6 +15,7 @@ parent_test() ->
 join_test() ->
     ?assertEqual('', node_addr:join([])),
     ?assertEqual(foo, node_addr:join([foo])),
+    ?assertEqual(foo, node_addr:join(['', foo])),
     ?assertEqual(foo.bar, node_addr:join([foo, bar])),
     ?assertEqual(foo.bar.baz, node_addr:join([foo, bar, baz])).
 

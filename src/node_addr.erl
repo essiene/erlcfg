@@ -20,6 +20,8 @@ parent(NodeAddr) when is_atom(NodeAddr) ->
 
 join([]) ->
     '';
+join(['', Single]) when is_atom(Single) ->
+    Single;
 join([H | _Rest]=NodeAddrList) when is_list(NodeAddrList), is_atom(H) ->
     AtomList2StrList = fun (Item) ->
             atom_to_list(Item)

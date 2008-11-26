@@ -5,15 +5,15 @@
 
 
 traverse(Ast) ->
-    traverse(Ast, erlcfg_interp:new()).
+    traverse(Ast, '', erlcfg_interp:new()).
 
-traverse([], Interp) ->
+traverse([], _CurrentBlock, Interp) ->
     Interp;
 
-traverse([Command | Rest], Interp) when is_tuple(Command) ->
-    {NewInterp, _Value} = erlcfg_interp:eval(Interp, Command),
-    traverse(Rest, NewInterp);
+traverse([Command | Rest], CurrentBlock, Interp) when is_tuple(Command) ->
+    {NewInterp, NewBlock, _Value} = erlcfg_interp:eval(Interp, CurrentBlock, Command),
+    traverse(Rest, NewBlock, NewInterp);
 
-traverse([Ast | Rest], Interp) when is_list(Ast) ->
-    NewInterp = traverse(Ast, Interp),
-    traverse(Rest, NewInterp).
+traverse([Ast | Rest], CurrentBlock, Interp) when is_list(Ast) ->
+    NewInterp = traverse(Ast, CurrentBlock, Interp),
+    traverse(Rest, CurrentBlock, NewInterp).
