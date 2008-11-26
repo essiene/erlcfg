@@ -30,3 +30,23 @@ erlcfg_traverse_multiple_toplevel_test() ->
     },
     ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).
 
+erlcfg_traverse_nested_blocks_test() ->
+    Ast = [[{block, foo, noop}, 
+                [{set, foo, {val, moo, noop}}, 
+                  [{set, foo1, {val, moo1, noop}}, 
+                   [[{block, foo2, noop}, 
+                      [{set, foo, {val, moo, noop}}, [{set, foo1, {val, moo1, noop}},[]]],
+                   {endblock, noop, noop}],[]]]],
+           {endblock, noop, noop}],[]],
+   Expected = {c, '', [
+           {c, foo, [
+                   {d, foo, moo},
+                   {d, foo1, moo1},
+                   {c, foo2, [
+                           {d, foo, moo},
+                           {d, foo1, moo1}]
+                   }
+               ]
+           }]
+   },
+   ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).

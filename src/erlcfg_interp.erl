@@ -23,6 +23,7 @@ eval(State, CurrentBlock, {set, Address, Value}) ->
     {NewState, CurrentBlock, Op2Value} = eval(State, CurrentBlock, Value),
 
     FullAddress = node_addr:join([CurrentBlock, Address]),
+    util:logmessage({setting, NewState, FullAddress, Op2Value}),
     case erlcfg_node:set(NewState, FullAddress, Op2Value) of
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress});
@@ -32,7 +33,7 @@ eval(State, CurrentBlock, {set, Address, Value}) ->
 
 eval(State, CurrentBlock, {block, Address, _Ignore}) ->
     FullAddress = node_addr:join([CurrentBlock, Address]),
-    {NewState, CurrentBlock, []} = eval(State, CurrentBlock, {set, FullAddress, []}),
+    {NewState, CurrentBlock, []} = eval(State, CurrentBlock, {set, Address, []}),
     {NewState, FullAddress, []};
 
 eval(State, CurrentBlock, {endblock, _Ignore, _Ignore}) ->
