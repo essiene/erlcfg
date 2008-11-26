@@ -62,3 +62,18 @@ Command => {set, Addr, Command} |
 
 Addr => atom
 Data => atom | quoted_atom | bool | integer | float | string
+
+Block Support
+-------------
+{block, foo, noop}
+{set, foo, {val, moo, noop}}
+{set, foo1, {val, moo1, noop}}
+{endblock, noop, noop}
+
+To create the structure:
+
+foo = {
+    foo = moo;
+    foo1 = moo1;
+}
+
