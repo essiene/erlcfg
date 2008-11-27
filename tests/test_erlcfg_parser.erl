@@ -61,6 +61,21 @@ parse_single_value_list_assignment_test() ->
     Expected = {ok, [{set, foo, {cons, {val, bar, noop}, nil}}, []]},
     ?assertEqual(Expected, Result).
 
+parse_multiple_value_list_assignment_test() ->
+    Tokens = [{atom, 1, foo}, {'=', 1}, 
+        {'(', 1}, 
+            {atom, 1, bar}, 
+            {',', 1},
+            {integer, 1, 5},
+            {',', 1},
+            {float, 1, 0.59},
+            {',', 1},
+            {string, 1, <<"A String">>},
+        {')', 1}, {';', 1}],
+    Result = erlcfg_parser:parse(Tokens),
+    Expected = {ok, [{set, foo, {cons, {val, bar, noop}, {cons, {val, 5, noop}, {cons, {val, 0.59, noop}, {cons, {val, <<"A String">>, noop}, nil}}}}}, []]},
+    ?assertEqual(Expected, Result).
+
 parse_single_nested_blocks_assignment_test() ->
     Tokens = [
         {atom, 1, foo}, {'=', 1}, {'{', 1}, 
