@@ -5,3 +5,8 @@ src/*_parser.erl
 diff
 commit
 erl_crash.dump
+*.tar
+*.gz
+*.bz2
+*.rpm
+erlcfg-*/
