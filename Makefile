@@ -29,7 +29,7 @@ install: all
 
 dist: clean
 	@mkdir -p $(NAME)-$(VERSION)
-	@cp README Makefile $(NAME)-$(VERSION)
+	@cp TODO README Makefile $(NAME)-$(VERSION)
 	@cp -r include src tests $(NAME)-$(VERSION)
 	@tar -czvf $(NAME)-$(VERSION).tar.gz $(NAME)-$(VERSION)
 	@rm -rf $(NAME)-$(VERSION)
