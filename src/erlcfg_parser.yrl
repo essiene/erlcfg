@@ -15,7 +15,7 @@ assignment  -> key '=' value : {set, '$1', '$3'}.
 
 key ->  atom        : get_value('$1').
 value -> data       : {val, '$1', noop}. 
-value -> '(' elements ')' : {cons, '$2', nil}.
+value -> '(' elements ')' : '$2'.
 
 data -> integer    : get_value('$1').
 data -> float      : get_value('$1').
@@ -26,6 +26,7 @@ data -> bool       : get_value('$1').
 data -> variable   : {get, get_value('$1'), noop}.
 
 elements -> element ',' elements    : {cons, '$1', '$3'}.
+elements -> element     : {cons, '$1', nil}.
 elements -> '$empty' : nil.
 element -> value : '$1'.
 
