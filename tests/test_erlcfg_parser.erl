@@ -49,6 +49,12 @@ parse_single_block_assignment_test() ->
     Expected = {ok, [[{block, foo, noop}, [{set, foo, {val, moo, noop}}, []], {endblock, noop, noop}],[]]},
     ?assertEqual(Expected, Result).
 
+parse_empty_list_assignment_test() ->
+    Tokens = [{atom, 1, foo}, {'=', 1}, {'(', 1}, {')', 1}, {';', 1}],
+    Result = erlcfg_parser:parse(Tokens),
+    Expected = {ok, [{set, foo, {cons, nil, nil}}, []]},
+    ?assertEqual(Expected, Result).
+
 parse_single_nested_blocks_assignment_test() ->
     Tokens = [
         {atom, 1, foo}, {'=', 1}, {'{', 1}, 
