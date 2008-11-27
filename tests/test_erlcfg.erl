@@ -20,7 +20,7 @@ nested_file_test() ->
     ?assertEqual(5038, Config:get(common.port.ami)),
     ?assertEqual(9119, Config:get(common.port.rest)),
 
-    ?assertEqual("0.0.0.0", Config:get(general.listen)),
+    ?assertEqual(["10.10.201.5", "192.168.10.41"], Config:get(general.listen)),
     ?assertEqual(9119, Config:get(general.port)),
     ?assertEqual(2, Config:get(general.wait.short)),
     ?assertEqual(10, Config:get(general.wait.long)),
