@@ -14,6 +14,10 @@ $(EBIN_DIR)/%.beam: %.erl
 	@mkdir -p $(EBIN_DIR)
 	$(ERLC) $(ERLC_FLAGS) $<
 
+$(EBIN_DIR)/%.app: %.app
+	@mkdir -p $(EBIN_DIR)
+	@cp $< $@
+
 
 LEEX_OBJECTS=erlcfg_lexer
 
@@ -28,8 +32,10 @@ OBJECTS=erlcfg_lexer \
 		erlcfg_data \
 		erlcfg
 
+APP=erlcfg
 
-all: ${LEEX_OBJECTS:%=%.erl} ${YECC_OBJECTS:%=%.erl} ${OBJECTS:%=$(EBIN_DIR)/%.beam}
+
+all: ${LEEX_OBJECTS:%=%.erl} ${YECC_OBJECTS:%=%.erl} ${OBJECTS:%=$(EBIN_DIR)/%.beam} ${APP:%=$(EBIN_DIR)/%.app}
 	@echo All Done
 
 
