@@ -39,6 +39,14 @@ eval(State, CurrentBlock, {endblock, _Ignore, _Ignore}) ->
     NewBlock = node_addr:parent(CurrentBlock),
     {State, NewBlock, CurrentBlock};
 
+eval(State, CurrentBlock, {cons, Elem, List}) ->
+    {NewState, CurrentBlock, ElemValue} = eval(State, CurrentBlock, Elem),
+    {NewState1, CurrentBlock, ListValue} = eval(NewState, CurrentBlock, List),
+    {NewState1, CurrentBlock, [ElemValue | ListValue]};
+
+eval(State, CurrentBlock, nil) ->
+    {State, CurrentBlock, []};
+
 eval(State, CurrentBlock, []) ->
     {State, CurrentBlock, []};
 

@@ -48,6 +48,17 @@ eval_endblock_test() ->
     Expected = {{c, '', [{c, foo, []}]}, '', foo},
     ?assertEqual(Expected, Result).
 
+eval_cons_test() ->
+    Interp = erlcfg_interp:new(),
+    {Interp, '', Value} = erlcfg_interp:eval(Interp, '', nil),
+    ?assertEqual(Value, []),
+
+    {Interp, '', Value1} = erlcfg_interp:eval(Interp, '', {cons, {val, 1, noop}, nil}),
+    ?assertEqual(Value1, [1]),
+
+    {Interp, '', Value2} = erlcfg_interp:eval(Interp, '', {cons, {val, 2, noop}, {cons, {val, 1, noop}, nil}}),
+    ?assertEqual(Value2, [2,1]).
+
 eval_set_no_parent_test()  ->
     Interp = erlcfg_interp:new(),
     {Interp1, '', bar} = erlcfg_interp:eval(Interp, '', {set, foo, bar}),
