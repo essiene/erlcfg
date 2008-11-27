@@ -56,7 +56,10 @@ eval(State, CurrentBlock, nil) ->
 eval(State, CurrentBlock, []) ->
     {State, CurrentBlock, []};
 
-eval(State, CurrentBlock, Data) when is_number(Data); is_atom(Data); is_binary(Data) ->
+eval(State, CurrentBlock, Data) when is_binary(Data) ->
+    {State, CurrentBlock, binary_to_list(Data)};
+
+eval(State, CurrentBlock, Data) when is_number(Data); is_atom(Data) ->
     {State, CurrentBlock, Data};
 
 eval(_State, _CurrentBlock, Unknown) -> % TODO: reflect current block in error msg?

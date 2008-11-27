@@ -12,8 +12,5 @@ raw() ->
 get(Key) ->
     convert(erlcfg_node:get(Node, Key)).
 
-convert({value, Value}) when is_binary(Value) ->
-    binary_to_list(Value);
-
 convert({value, Value}) ->
     Value.

@@ -22,7 +22,7 @@ get_onelevel_multi_test() ->
     Data = {c, '', [
         {d, int, 5}, 
         {d, atom, baz}, 
-        {d, string, <<"A string">>}
+        {d, string, "A string"}
     ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual(5, Config:get(int)),
