@@ -49,15 +49,13 @@ walk_tree_set_node(Node, IData, Address, Key) ->
     {ParentAddress, NewKey} = node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
-
-
 get(IData, Address) when is_atom(Address) ->
     Fun = fun(Node) ->
             node_read(Node)
     end,
     if_node_found(IData, Address, Fun).
 
-node_write({c, _ParentName, _Container}=ParentNode, Key, Value) when is_list(Value) ->
+node_write({c, _ParentName, _Container}=ParentNode, Key, [Node | _Rest]=Value) when is_tuple(Node) ->
     node_write(ParentNode, Key, Value, c);
 
 node_write({c, _ParentName, _Container}=ParentNode, Key, Value) ->
