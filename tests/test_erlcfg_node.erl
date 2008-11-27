@@ -282,7 +282,7 @@ set_test() ->
         {d, two, void}
     ]},
 
-    D1 = erlcfg_node:set(Data, one, []),
+    D1 = erlcfg_node:set(Data, one),
     Data1 = erlcfg_node:set(D1, two, void),
     ?assertEqual(Expected, Data1),
 
@@ -300,7 +300,7 @@ set_test() ->
         {d, two, void}
     ]},
 
-    D2 = erlcfg_node:set(Data1, one.two, []),
+    D2 = erlcfg_node:set(Data1, one.two),
     D3 = erlcfg_node:set(D2, one.two.three, 123),
     Data2 = erlcfg_node:set(D3, one.two.four, 124),
     ?assertEqual(Expected2, Data2).

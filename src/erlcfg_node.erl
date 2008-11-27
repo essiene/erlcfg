@@ -2,6 +2,7 @@
 -export([
         new/0,
         get/2,
+        set/2,
         set/3
     ]).
 
@@ -14,6 +15,7 @@
         node_read/2,
         if_node_found/3,
         if_node_found/5,
+        walk_tree_set_node/4,
         walk_tree_set_node/5
     ]).
 
@@ -26,11 +28,24 @@ set(IData, Address, Value) when is_atom(Address) ->
     {ParentAddress, Key} = node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key, Value]).
 
+set(IData, Address) when is_atom(Address) ->
+    {ParentAddress, Key} = node_addr:emancipate(Address),
+    if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key]).
+
 walk_tree_set_node(Node, _IData, '', Key, Value) ->
     node_write(Node, Key, Value);
 
+
 walk_tree_set_node(Node, IData, Address, Key, Value) -> 
     {c, _NodeName, _Container=NewValue} = node_write(Node, Key, Value), 
+    {ParentAddress, NewKey} = node_addr:emancipate(Address),
+    if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
+
+walk_tree_set_node(Node, _IData, '', Key) ->
+    node_write(Node, Key);
+
+walk_tree_set_node(Node, IData, Address, Key) -> 
+    {c, _NodeName, _Container=NewValue} = node_write(Node, Key), 
     {ParentAddress, NewKey} = node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
