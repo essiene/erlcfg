@@ -1,8 +1,11 @@
 -module(erlcfg).
 -export([
+        new/0,
         new/1
     ]).
 
+new() ->
+    erlcfg_data:new(erlcfg_node:new()).
 
 new(FileName) ->
     case file:read_file(FileName) of

@@ -16,7 +16,8 @@ get_onelevel_dual_test() ->
     ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual(5, Config:get(foo)),
-    ?assertEqual(baz, Config:get(bar)).
+    ?assertEqual(baz, Config:get(bar)),
+    ?assertEqual({error, {not_found, far}}, Config:get(far)).
 
 get_onelevel_multi_test() ->
     Data = {c, '', [
@@ -28,6 +29,17 @@ get_onelevel_multi_test() ->
     ?assertEqual(5, Config:get(int)),
     ?assertEqual(baz, Config:get(atom)), 
     ?assertEqual("A string", Config:get(string)).
+
+get_default_value_test() ->
+    Data = {c, '', [
+        {d, int, 5}, 
+        {d, atom, baz}, 
+        {d, string, "A string"}
+    ]},
+    Config = erlcfg_data:new(Data),
+    ?assertEqual(5, Config:get(int)),
+    ?assertEqual(baz, Config:get(atom, 10)),
+    ?assertEqual(10, Config:get(int.moo, 10)).
 
 
 get_twolevels_test() ->
@@ -41,7 +53,8 @@ get_twolevels_test() ->
     ]},
     Config = erlcfg_data:new(Data),
     ?assertEqual(5, Config:get(foo.int)), 
-    ?assertEqual(5.0, Config:get(foo.float)).
+    ?assertEqual(5.0, Config:get(foo.float)),
+    ?assertEqual({error, {not_found, foo.bar}}, Config:get(foo.bar)).
 
 get_multi_level_nested_test() ->
     Data = {c, '', [

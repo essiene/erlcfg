@@ -1,6 +1,9 @@
 -module(test_erlcfg).
 -include_lib("eunit/include/eunit.hrl").
 
+new_no_configfile_test() ->
+    ?assertEqual({erlcfg_data, {c, '', []}}, erlcfg:new()).
+
 new_test() ->
     Config = erlcfg:new("flat.conf"),
     ?assertEqual(1, Config:get(one_int)),
