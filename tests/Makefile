@@ -2,12 +2,13 @@ EBIN_DIR= ../ebin
 INCLUDE_DIR= ../include
 
 ERLC_FLAGS= -pa $(EBIN_DIR) -I $(INCLUDE_DIR) -W -o $(EBIN_DIR)
+ERL_FLAGS= -pa $(EBIN_DIR) -I $(INCLUDE_DIR)
 
 $(EBIN_DIR)/%.beam: %.erl
 	erlc $(ERLC_FLAGS) $<
 
 
-TESTS=test_erlcfg_lexer \
+OBJECTS=test_erlcfg_lexer \
 	  test_erlcfg_parser \
 	  test_node_addr \
 	  test_erlcfg_node_find \
@@ -19,19 +20,12 @@ TESTS=test_erlcfg_lexer \
 
 
 test: compile
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_lexer test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_parser test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_node_addr test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_node_find test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_node test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_interp test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_ast test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg_data test -s init stop
-	erl $(ERLC_FLAGS) -noshell -s test_erlcfg test -s init stop
+	erl $(ERL_FLAGS) -noshell $(foreach t, $(OBJECTS), -s $(t) test) -s init stop
+	@echo finished running tests
 
 
-compile: ${TESTS:%=$(EBIN_DIR)/%.beam}
-	@echo all done
+compile: ${OBJECTS:%=$(EBIN_DIR)/%.beam}
+	@echo all done compiling
 
 clean:
 	@rm -f *.beam
