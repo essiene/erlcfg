@@ -2,7 +2,8 @@
 -export([
         raw/0,
         get/1,
-        get/2
+        get/2,
+        ensure_get/1
     ]).
 
 
@@ -22,5 +23,13 @@ get(Key) ->
         {not_found, MissingNode} ->
             {error, {not_found, MissingNode}};
         {value, Value} ->
+            Value
+    end.
+
+ensure_get(Key) ->
+    case THIS:get(Key) of
+        {error, Reason} ->
+            throw(Reason);
+        Value ->
             Value
     end.
