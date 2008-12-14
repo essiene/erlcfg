@@ -3,6 +3,7 @@
         raw/0,
         get/1,
         get/2,
+        get_config/1,
         ensure_get/1
     ]).
 
@@ -33,3 +34,6 @@ ensure_get(Key) ->
         Value ->
             Value
     end.
+
+get_config(Key) ->
+    {erlcfg_data, {c, '', THIS:ensure_get(Key)}}.

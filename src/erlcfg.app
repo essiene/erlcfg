@@ -15,6 +15,6 @@
   },
   {registered, []},
   {env, []},
-  {applications, [kernel, stdlib, yecc, leex]}
+  {applications, [kernel, stdlib]}
  ]
 }.
