@@ -1,38 +1,39 @@
 # Comment
 
-common = {
+common {
     appserver = "www.appserver.com";
-    port = {
+
+    port {
         ami = 5038;
         rest = 9119;
-    };
-};
+    }
+}
 
-general = {
+general {
     listen = ("192.168.5.3", "168.99.5.23");
     port = $common.port.rest;
 
-    wait = {
+    wait {
         short = 2;
         long = 10;
-    };
-};
+    }
+}
 
-ami = {
+ami {
     host = $common.appserver;
     port = $common.port.ami;
     username =  "obelisk";
     secret = "obelisk";
-};
+}
 
-callentry = {
+callentry {
     rttl = 5;
     qttl = 60;
 
-    requeue = {
+    requeue {
         priority = high;
-    };
-};
+    }
+}
 
 
 
