@@ -1,7 +1,5 @@
 - build archlinux PKGBUILD
 - package leex for archlinux
 - build rpm for leex
-- Implement default parameters in lib front end
-- Fix BUG in erlcfg_data:convert, when address not found
 - go thru erlcfg.erl and check all the possible returns to make
   sure we're in a consistent state when anything goes wrong
