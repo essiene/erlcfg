@@ -1,21 +1,27 @@
 Nonterminals
-assignments assignment key value data elements element.
+config items item assignment block key value data list elements element.
 
 Terminals 
 integer float atom quoted_atom string bool variable '=' ';' '{' '}' '(' ')' ','.
 
-Rootsymbol assignments.
+Rootsymbol config.
 
-assignments -> assignment ';' assignments : ['$1', '$3'].
-assignments -> assignment : ['$1'].
-assignments -> '$empty' : [].
+config -> '$empty' : [].
+config -> items : '$1'.
 
-assignment -> key '=' '{' assignments '}' : [{block, '$1', noop}, '$4', {endblock, noop, noop}].
-assignment  -> key '=' value : {set, '$1', '$3'}.
+items -> item : ['$1'].
+items -> item items: ['$1', '$2'].
+
+item -> block : '$1'.
+item -> assignment : '$1'.
+
+block -> key '{' config '}' : [{block, '$1', noop}, '$3', {endblock, noop, noop}].
+
+assignment -> key '=' value ';' : {set, '$1', '$3'}.
 
 key ->  atom        : get_value('$1').
 value -> data       : {val, '$1', noop}. 
-value -> '(' elements ')' : '$2'.
+value -> list       : '$1'.
 
 data -> integer    : get_value('$1').
 data -> float      : get_value('$1').
@@ -25,6 +31,7 @@ data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
 data -> variable   : {get, get_value('$1'), noop}.
 
+list -> '(' elements ')' : '$2'.
 elements -> element ',' elements    : {cons, '$1', '$3'}.
 elements -> element     : {cons, '$1', nil}.
 elements -> '$empty' : nil.
