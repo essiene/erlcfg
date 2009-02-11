@@ -8,7 +8,7 @@ ERL=erl -noshell
 	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".xrl\"), leex:file(Filename), halt()."
 
 %.erl: %.yrl
-	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".xrl\"), yecc:file(Filename), halt()."
+	@$(ERL) -eval "Filename = filename:basename(\"$<\", \".yrl\"), yecc:file(Filename), halt()."
 
 $(EBIN_DIR)/%.beam: %.erl
 	@mkdir -p $(EBIN_DIR)
