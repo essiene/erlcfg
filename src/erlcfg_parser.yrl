@@ -6,16 +6,16 @@ integer float atom quoted_atom string bool variable '=' ';' '{' '}' '(' ')' ','.
 
 Rootsymbol config.
 
-config -> '$empty' : [].
+config -> '$empty' : nil.
 config -> items : '$1'.
 
-items -> item : ['$1'].
-items -> item items: ['$1', '$2'].
+items -> item : '$1'.
+items -> item items: set_next('$1', '$2').
 
 item -> block : '$1'.
 item -> assignment : '$1'.
 
-block -> key '{' config '}' : [{block, '$1', noop}, '$3', {endblock, noop, noop}].
+block -> key '{' config '}' : {block, '$1', '$3', nil}.
 
 assignment -> key '=' value ';' : {set, '$1', '$3', nil}.
 
@@ -39,6 +39,12 @@ element -> value : '$1'.
 
 Erlang code.
 %nothing
+-include("erlcfg.hrl").
 
 get_value({_Type, _Line, Value}) ->
     Value.
+
+set_next(Node, Next) when is_record(Node, block) ->
+    Node#block{next=Next};
+set_next(Node, Next) when is_record(Node, set) ->
+    Node#set{next=Next}.

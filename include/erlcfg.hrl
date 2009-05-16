@@ -1,4 +1,4 @@
--record(node, {
+-record(block, {
         name,
         child,
         next=nil}).
