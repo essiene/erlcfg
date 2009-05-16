@@ -5,30 +5,15 @@
 new_test() ->
     ?assertEqual({c, '', []}, erlcfg_interp:new()).
 
-eval_val_with_empty_interp_test() ->
-    Interp = erlcfg_interp:new(),
-    Expected = {Interp, '', foo},
-    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {val, foo, nil})).
-
-eval_val_with_nonempty_interp_test() ->
-    Interp = {c, '', [{d, foo, bar}, {d, bar, baz}]},
-    Expected = {Interp, '', 5},
-    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {val, 5, nil})).
-
 eval_set_test()  ->
     Interp = erlcfg_interp:new(),
     Expected = {{c, '', [{d, foo, bar}]}, '', bar},
     ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {set, foo, bar})).
 
-eval_set_nested_val_test()  ->
-    Interp = erlcfg_interp:new(),
-    Expected = {{c, '', [{d, foo, bar}]}, '', bar},
-    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {set, foo, {val, bar, nil}})).
-
 eval_set_nested_get_test()  ->
     I = erlcfg_interp:new(),
-    {I1, '', bar} = erlcfg_interp:eval(I, '', {set, foo, {val, bar, nil}}),
-    {Interp, '', bar} = erlcfg_interp:eval(I1, '', {set, moo, {val, {get, foo, nil}, nil}}),
+    {I1, '', bar} = erlcfg_interp:eval(I, '', {set, foo, bar}),
+    {Interp, '', bar} = erlcfg_interp:eval(I1, '', {set, moo, {get, foo}}),
 
     Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, '', bar},
     ?assertEqual(Expected, {Interp, '', bar}).
@@ -53,10 +38,10 @@ eval_cons_test() ->
     {Interp, '', Value} = erlcfg_interp:eval(Interp, '', nil),
     ?assertEqual(Value, []),
 
-    {Interp, '', Value1} = erlcfg_interp:eval(Interp, '', {cons, {val, 1, noop}, nil}),
+    {Interp, '', Value1} = erlcfg_interp:eval(Interp, '', {cons, 1, nil}),
     ?assertEqual(Value1, [1]),
 
-    {Interp, '', Value2} = erlcfg_interp:eval(Interp, '', {cons, {val, 2, noop}, {cons, {val, 1, noop}, nil}}),
+    {Interp, '', Value2} = erlcfg_interp:eval(Interp, '', {cons, 2, {cons, 1, nil}}),
     ?assertEqual(Value2, [2,1]).
 
 eval_set_no_parent_test()  ->

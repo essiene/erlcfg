@@ -12,17 +12,12 @@ erlcfg_traverse_single_set_test() ->
     ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).
 
 erlcfg_traverse_single_get_test() ->
-    Ast = [{get, one, nil}, []],
+    Ast = [{get, one}, []],
     Expected = {not_found, one},
     ?assertThrow(Expected, erlcfg_ast:traverse(Ast)).
 
-erlcfg_traverse_single_val_test() ->
-    Ast = [{val, -1.5e-15, nil}, []],
-    Expected = {c, '', []},
-    ?assertEqual(Expected, erlcfg_ast:traverse(Ast)).
-
 erlcfg_traverse_multiple_toplevel_test() ->
-    Ast = [{set, one, {val, 3, noop}}, [{set, two, {get, one, noop}}]],
+    Ast = [{set, one, 3}, [{set, two, {get, one}}]],
     Expected = {c, '', [
             {d, one, 3},
             {d, two, 3}
@@ -32,10 +27,10 @@ erlcfg_traverse_multiple_toplevel_test() ->
 
 erlcfg_traverse_nested_blocks_test() ->
     Ast = [[{block, foo, noop}, 
-                [{set, foo, {val, moo, noop}}, 
-                  [{set, foo1, {val, moo1, noop}}, 
+                [{set, foo, moo}, 
+                  [{set, foo1, moo1}, 
                    [[{block, foo2, noop}, 
-                      [{set, foo, {val, moo, noop}}, [{set, foo1, {val, moo1, noop}},[]]],
+                      [{set, foo, moo}, [{set, foo1, moo1},[]]],
                    {endblock, noop, noop}],[]]]],
            {endblock, noop, noop}],[]],
    Expected = {c, '', [

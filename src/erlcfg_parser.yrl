@@ -29,7 +29,7 @@ data -> atom       : get_value('$1').
 data -> quoted_atom: get_value('$1').
 data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
-data -> variable   : {get, get_value('$1'), noop}.
+data -> variable   : {get, get_value('$1')}.
 
 list -> '(' elements ')' : '$2'.
 elements -> element ',' elements    : {cons, '$1', '$3'}.

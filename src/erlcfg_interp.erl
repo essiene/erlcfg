@@ -8,10 +8,7 @@
 new() ->
     erlcfg_node:new().
 
-eval(State, CurrentBlock, {val, Data, _Ignore}) ->
-    eval(State, CurrentBlock, Data);
-
-eval(State, CurrentBlock, {get, Address, _Ignore}) ->
+eval(State, CurrentBlock, {get, Address}) ->
    case erlcfg_node:get(State, Address) of
        {value, Value} ->
            {State, CurrentBlock, Value};

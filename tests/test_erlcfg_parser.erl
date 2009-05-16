@@ -1,5 +1,6 @@
 -module(test_erlcfg_parser).
 -include_lib("eunit/include/eunit.hrl").
+-include("erlcfg.hrl").
 
 parse_bool_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {bool, 1, true}, {';', 1}],
@@ -40,7 +41,7 @@ parse_string_assignment_test() ->
 parse_variable_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {variable, 1, foo.bar}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {get, foo.bar, noop}}]},
+    Expected = {ok, [{set, foo, {get, foo.bar}}]},
     ?assertEqual(Expected, Result).
 
 parse_single_block_assignment_test() ->
@@ -133,7 +134,7 @@ parse_mixed_assignment_test() ->
                 [{set, foo, -51.0e-10}, 
                     [{set, foo, foo51}, 
                         [{set, foo, <<"A String">>}, 
-                            [{set, foo, {get, foo.bar, noop}}]
+                            [{set, foo, {get, foo.bar}}]
                         ]
                     ]
                 ]
