@@ -20,7 +20,7 @@ block -> key '{' config '}' : [{block, '$1', noop}, '$3', {endblock, noop, noop}
 assignment -> key '=' value ';' : {set, '$1', '$3'}.
 
 key ->  atom        : get_value('$1').
-value -> data       : {val, '$1', noop}. 
+value -> data       : '$1'.
 value -> list       : '$1'.
 
 data -> integer    : get_value('$1').

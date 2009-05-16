@@ -4,49 +4,49 @@
 parse_bool_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {bool, 1, true}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, true, noop}}]},
+    Expected = {ok, [{set, foo, true}]},
     ?assertEqual(Expected, Result).
 
 parse_integer_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {integer, 1, 51}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, 51, noop}}]},
+    Expected = {ok, [{set, foo, 51}]},
     ?assertEqual(Expected, Result).
 
 parse_float_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {float, 1, -51.0e-10}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, -51.0e-10, noop}}]},
+    Expected = {ok, [{set, foo, -51.0e-10}]},
     ?assertEqual(Expected, Result).
 
 parse_atom_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {atom, 1, foo51}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, foo51, noop}}]},
+    Expected = {ok, [{set, foo, foo51}]},
     ?assertEqual(Expected, Result).
 
 parse_quoted_atom_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {quoted_atom, 1, '.foo@51'}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, '.foo@51', noop}}]},
+    Expected = {ok, [{set, foo, '.foo@51'}]},
     ?assertEqual(Expected, Result).
 
 parse_string_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {string, 1, <<"A String">>}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, <<"A String">>, noop}}]},
+    Expected = {ok, [{set, foo, <<"A String">>}]},
     ?assertEqual(Expected, Result).
 
 parse_variable_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {variable, 1, foo.bar}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {val, {get, foo.bar, noop}, noop}}]},
+    Expected = {ok, [{set, foo, {get, foo.bar, noop}}]},
     ?assertEqual(Expected, Result).
 
 parse_single_block_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'{', 1}, {atom, 1, foo}, {'=', 1}, {atom, 1, moo}, {';', 1}, {'}', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [[{block, foo, noop}, [{set, foo, {val, moo, noop}}], {endblock, noop, noop}]]},
+    Expected = {ok, [[{block, foo, noop}, [{set, foo, moo}], {endblock, noop, noop}]]},
     ?assertEqual(Expected, Result).
 
 parse_empty_list_assignment_test() ->
@@ -58,7 +58,7 @@ parse_empty_list_assignment_test() ->
 parse_single_value_list_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {'(', 1}, {atom, 1, bar}, {')', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {cons, {val, bar, noop}, nil}}]},
+    Expected = {ok, [{set, foo, {cons, bar, nil}}]},
     ?assertEqual(Expected, Result).
 
 parse_multiple_value_list_assignment_test() ->
@@ -73,7 +73,7 @@ parse_multiple_value_list_assignment_test() ->
             {string, 1, <<"A String">>},
         {')', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {cons, {val, bar, noop}, {cons, {val, 5, noop}, {cons, {val, 0.59, noop}, {cons, {val, <<"A String">>, noop}, nil}}}}}]},
+    Expected = {ok, [{set, foo, {cons, bar, {cons, 5, {cons, 0.59, {cons, <<"A String">>, nil}}}}}]},
     ?assertEqual(Expected, Result).
 
 parse_single_nested_blocks_assignment_test() ->
@@ -93,16 +93,16 @@ parse_single_nested_blocks_assignment_test() ->
             [
                 {block, foo, noop}, 
                 [
-                    {set, foo, {val, moo, noop}},
+                    {set, foo, moo},
                     [
-                        {set, foo1, {val, moo1, noop}},
+                        {set, foo1, moo1},
                         [
                             [
                                 {block, foo2, noop}, 
                                 [
-                                    {set, foo, {val, moo, noop}},
+                                    {set, foo, moo},
                                     [
-                                        {set, foo1, {val, moo1, noop}}
+                                        {set, foo1, moo1}
                                     ]
                                 
                                 ], 
@@ -128,12 +128,12 @@ parse_mixed_assignment_test() ->
     ],
     Result = erlcfg_parser:parse(Tokens),
     Expected = {ok, 
-        [{set, foo, {val, false, noop}},
-            [{set, foo, {val, 51, noop}},
-                [{set, foo, {val, -51.0e-10, noop}}, 
-                    [{set, foo, {val, foo51, noop}}, 
-                        [{set, foo, {val, <<"A String">>, noop}}, 
-                            [{set, foo, {val, {get, foo.bar, noop}, noop}}]
+        [{set, foo, false},
+            [{set, foo, 51},
+                [{set, foo, -51.0e-10}, 
+                    [{set, foo, foo51}, 
+                        [{set, foo, <<"A String">>}, 
+                            [{set, foo, {get, foo.bar, noop}}]
                         ]
                     ]
                 ]
