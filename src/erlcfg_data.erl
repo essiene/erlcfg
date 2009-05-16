@@ -4,7 +4,8 @@
         get/1,
         get/2,
         get_config/1,
-        ensure_get/1
+        ensure_get/1,
+        prepare/1
     ]).
 
 
@@ -24,7 +25,7 @@ get(Key) ->
         {not_found, MissingNode} ->
             {error, {not_found, MissingNode}};
         {value, Value} ->
-            Value
+            THIS:prepare(Value)
     end.
 
 ensure_get(Key) ->
@@ -32,8 +33,16 @@ ensure_get(Key) ->
         {error, Reason} ->
             throw(Reason);
         Value ->
-            Value
+            THIS:prepare(Value)
     end.
+
+prepare([{c, _K, _V} | _Rest]=Value) ->
+    {erlcfg_data, {c, '', Value}};
+prepare([{d, _K, _V} | _Rest]=Value) ->
+    {erlcfg_data, {c, '', Value}};
+prepare(Value) ->
+    Value.
+
 
 get_config(Key) ->
     {erlcfg_data, {c, '', THIS:ensure_get(Key)}}.
