@@ -8,12 +8,12 @@ new_test() ->
 eval_set_test()  ->
     Interp = erlcfg_interp:new(),
     Expected = {{c, '', [{d, foo, bar}]}, '', bar},
-    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {set, foo, bar})).
+    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {set, foo, bar, nil})).
 
 eval_set_nested_get_test()  ->
     I = erlcfg_interp:new(),
-    {I1, '', bar} = erlcfg_interp:eval(I, '', {set, foo, bar}),
-    {Interp, '', bar} = erlcfg_interp:eval(I1, '', {set, moo, {get, foo}}),
+    {I1, '', bar} = erlcfg_interp:eval(I, '', {set, foo, bar, nil}),
+    {Interp, '', bar} = erlcfg_interp:eval(I1, '', {set, moo, {get, foo}, nil}),
 
     Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, '', bar},
     ?assertEqual(Expected, {Interp, '', bar}).
@@ -46,9 +46,9 @@ eval_cons_test() ->
 
 eval_set_no_parent_test()  ->
     Interp = erlcfg_interp:new(),
-    {Interp1, '', bar} = erlcfg_interp:eval(Interp, '', {set, foo, bar}),
+    {Interp1, '', bar} = erlcfg_interp:eval(Interp, '', {set, foo, bar, nil}),
     Expected = {not_found, foo.foo},
-    ?assertThrow(Expected, erlcfg_interp:eval(Interp1, '', {set, foo.foo.bar, bar})).
+    ?assertThrow(Expected, erlcfg_interp:eval(Interp1, '', {set, foo.foo.bar, bar, nil})).
 
 eval_illegal_command_test()  ->
     Interp = erlcfg_interp:new(),

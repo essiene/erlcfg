@@ -16,7 +16,7 @@ eval(State, CurrentBlock, {get, Address}) ->
            throw({not_found, InvalidAddress})
    end;
 
-eval(State, CurrentBlock, {set, Address, Value}) ->
+eval(State, CurrentBlock, {set, Address, Value, nil}) ->
     {NewState, CurrentBlock, Op2Value} = eval(State, CurrentBlock, Value),
 
     FullAddress = node_addr:join([CurrentBlock, Address]),

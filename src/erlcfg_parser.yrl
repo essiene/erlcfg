@@ -17,7 +17,7 @@ item -> assignment : '$1'.
 
 block -> key '{' config '}' : [{block, '$1', noop}, '$3', {endblock, noop, noop}].
 
-assignment -> key '=' value ';' : {set, '$1', '$3'}.
+assignment -> key '=' value ';' : {set, '$1', '$3', nil}.
 
 key ->  atom        : get_value('$1').
 value -> data       : '$1'.
