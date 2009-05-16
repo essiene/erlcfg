@@ -8,8 +8,9 @@ Currently the lexer recognizes some basic types, similar to Erlang:
     - quoted_atom (This is exactly the same as an Erlang quoted atom.
             complex atoms values should be quoted_atoms).
     - string
-    * Currently there is no support for the list type, and there
-      is no planned support for tuple.
+    - list
+    * there is no planned support for Erlang tuples, because the config
+      file is actually made up of tuples with non-anonymous fields
 
     - The other basic type recognized by the lexer is the variable
       which is a $atom.atom.atom (which is a dollar sign followed by atoms
@@ -20,60 +21,137 @@ Parser
 -------
 
 The parser recognizes zero or more nodes, which can be nested in other nodes.
-The parser is also very strict, allowing no optional syntaxes (for now). This makes
-things simple for me.
+The parser is also very strict, allowing no optional syntaxes (for now). 
+This makes things simple for me.
 
-A node is basically is an address with a value, which is created by an assignment.
-Currently, the parser can parse simple node assignments, and not nested nodes.
+A node is basically an address with a value, which is created by an assignment.
 
-This will change soon.
-
-The nodes assignments are parsed into a simple AST shown below. The nodes of the
-AST are VM/Interpreter instructions that will be directly eval'd by the Interpreter.
+The nodes assignments are parsed into a simple AST shown below. The AST is directly,
+interpreted to create our config structure which is returned to the caller.
 
 Abstract Syntax Tree.
 ----------------------
 
-Currently, the AST is very naive and simple, to fit the flat non nested state of 
-the parser, it will evolve soon to fit the new realities as it continues.
+The AST is built with records with the inner nodes of the AST having a NEXT pointer,
+to the next record on the tree. To keep things simple, I have limited some nodes to
+only occur as LEAF nodes, and as such, they do not need a NEXT pointer. See erlcfg.hrl
+for the record definitions.
 
-[command,
-    [command,
-        [command, []]
-    ]
-]
+A simple file like:
 
-Once the AST is built, it is traversed, and each command is recursively eval'd by
-the Interpreter/VM
+# File Start
 
-Interpreter/VM Commands
------------------------
-
-Command => {set, Addr, Command} |
-           {get, Addr, _}  |
-           {val, Data, _}
-
-{set, Addr, Command} : evaluates Command and sets the content of Addr to that value. It then returns that value.
-                       and Addr can be set only once.
-
-{get, Addr, _} : returns the value stored at Addr.
-
-{val, Data, _} : returns Data, 
-
-Addr => atom
-Data => atom | quoted_atom | bool | integer | float | string
-
-Block Support
--------------
-{block, foo, noop}
-{set, foo, {val, moo, noop}}
-{set, foo1, {val, moo1, noop}}
-{endblock, noop, noop}
-
-To create the structure:
-
-foo = {
-    foo = moo;
-    foo1 = moo1;
+node1 {
 }
 
+# File End
+
+Will result in an AST like:
+
+#node{
+    name = node1,
+    child = nil,
+    next = nil
+}
+
+A slightly more complex example example is a file that looks like:
+
+# File Start
+
+node1 {
+    key1 = val1;
+}
+
+key2 = val2;
+
+# File End
+
+Which will result in AST like:
+
+#node {
+    name = node1,
+    child = #set {
+        key = key1,
+        value = val1,
+        next = nil
+    },
+    next = #set {
+        key = key2,
+        value = val2,
+        next = nil
+    }
+}
+
+A more real life complex example follows:
+
+# File Start
+
+node1 {
+    key1 = val1;
+    key2 = val2;
+
+    node2 {
+        key3 = val3;
+    }
+}
+
+node3 {
+    key4 = $node1.node2.key3;
+    key5 = val5;
+}
+
+node4 {
+    key6 = val6;
+}
+
+# File End
+
+The corresponding AST is as follows
+
+#node {
+    name = node1,
+    child = #set {
+        key = key1,
+        value = val1,
+        next = #set {
+            key = key2,
+            value = val2,
+            next = #node {
+                name = node2,
+                child = #set {
+                    key = key3,
+                    value = val3,
+                    next = nil
+                },
+                next = nil
+            }
+        }
+    },
+
+    next = #node{
+        name = node3,
+        child = #set {
+            key = key4,
+            value = #get {
+                address = node1.node2.key3
+            },
+            next = #set {
+                key = key5,
+                value = val5,
+                next = nil
+            }
+        },
+        next = #node {
+            name = node4,
+            child = #set {
+                key = key6,
+                value = val6,
+                next = nil
+            },
+            next = nil
+        }
+    }
+}
+    
+Once the AST is built, it is traversed, and each command is recursively eval'd by
+the Interpreter/VM
