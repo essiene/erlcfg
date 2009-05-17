@@ -47,16 +47,20 @@ eval_string_test() ->
     Expected = {interp, {c, '', [{d, foo, "A String"}]}, "A String", ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
-eval_cons_test() ->
-    Interp = erlcfg_interp:new(),
-    {Interp, '', Value} = erlcfg_interp:eval(Interp, '', nil),
-    ?assertEqual(Value, []),
+eval_cons_empty_test() ->
+    Ast = [],
+    Expected = {interp, {c, '', []}, [], ''},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
-    {Interp, '', Value1} = erlcfg_interp:eval(Interp, '', {cons, 1, nil}),
-    ?assertEqual(Value1, [1]),
+eval_cons_single_item_test() ->
+    Ast = {cons, 1, []},
+    Expected = {interp, {c, '', []}, [1], ''},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
-    {Interp, '', Value2} = erlcfg_interp:eval(Interp, '', {cons, 2, {cons, 1, nil}}),
-    ?assertEqual(Value2, [2,1]).
+eval_cons_multiple_items_test() ->
+    Ast = {cons, 1, {cons, 2, {cons, 3, []}}},
+    Expected = {interp, {c, '', []}, [1,2,3], ''},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_set_no_parent_test()  ->
     Ast = {set, foo, bar, {set, foo.foo.bar, bar, nil}},
