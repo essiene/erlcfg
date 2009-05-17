@@ -46,7 +46,7 @@ eval([], State) ->
     State#interp{value=[]};
 
 eval(Data, State) when is_record(Data, cons) ->
-    State#interp{value=cons(Data)};
+    State#interp{value=cons(Data, State)};
 
 eval(Data, State) when is_binary(Data) ->
     State#interp{value=binary_to_list(Data)};
@@ -57,7 +57,9 @@ eval(Data, State) when is_number(Data); is_atom(Data) ->
 eval(Unknown, _State) -> % TODO: capture current scope?
     throw({illegal_command, Unknown}).
 
-cons(#cons{head=Head, tail=[]}) ->
-    [Head];
-cons(#cons{head=Head, tail=Tail}) ->
-    [Head | cons(Tail)].
+cons(#cons{head=Head, tail=[]}, State) ->
+    NewState = eval(Head, State),
+    [NewState#interp.value];
+cons(#cons{head=Head, tail=Tail}, State) ->
+    NewState = eval(Head, State),
+    [NewState#interp.value | cons(Tail, NewState)].
