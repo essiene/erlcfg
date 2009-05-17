@@ -1,22 +1,21 @@
 -module(test_erlcfg_interp).
 -include_lib("eunit/include/eunit.hrl").
+-include("erlcfg.hrl").
 
 
-new_test() ->
-    ?assertEqual({c, '', []}, erlcfg_interp:new()).
+eval_nil_test() ->
+    Expected = {c, '', []},
+    ?assertEqual(Expected, erlcfg_interp2:eval(nil)).
 
 eval_set_test()  ->
-    Interp = erlcfg_interp:new(),
-    Expected = {{c, '', [{d, foo, bar}]}, '', bar},
-    ?assertEqual(Expected, erlcfg_interp:eval(Interp, '', {set, foo, bar, nil})).
+    Expected = {c, '', [{d, foo, bar}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(#set{key=foo, value=bar, next=nil})),
+    ?assertEqual(Expected, erlcfg_interp2:eval({set, foo, bar, nil})).
 
 eval_set_nested_get_test()  ->
-    I = erlcfg_interp:new(),
-    {I1, '', bar} = erlcfg_interp:eval(I, '', {set, foo, bar, nil}),
-    {Interp, '', bar} = erlcfg_interp:eval(I1, '', {set, moo, {get, foo}, nil}),
-
-    Expected = {{c, '', [{d, foo, bar}, {d, moo, bar}]}, '', bar},
-    ?assertEqual(Expected, {Interp, '', bar}).
+    Ast = {set, foo, bar, {set, moo, {get, foo}, nil}},
+    Expected = {c, '', [{d, foo, bar}, {d, moo, bar}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_block_test() ->
     I = erlcfg_interp:new(),
@@ -45,10 +44,9 @@ eval_cons_test() ->
     ?assertEqual(Value2, [2,1]).
 
 eval_set_no_parent_test()  ->
-    Interp = erlcfg_interp:new(),
-    {Interp1, '', bar} = erlcfg_interp:eval(Interp, '', {set, foo, bar, nil}),
+    Ast = {set, foo, bar, {set, foo.foo.bar, bar, nil}},
     Expected = {not_found, foo.foo},
-    ?assertThrow(Expected, erlcfg_interp:eval(Interp1, '', {set, foo.foo.bar, bar, nil})).
+    ?assertThrow(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_illegal_command_test()  ->
     Interp = erlcfg_interp:new(),
