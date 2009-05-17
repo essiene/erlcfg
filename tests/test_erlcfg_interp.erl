@@ -18,19 +18,14 @@ eval_set_nested_get_test()  ->
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_block_test() ->
-    I = erlcfg_interp:new(),
-    Result = erlcfg_interp:eval(I, '', {block, foo, noop}),
+    Ast = {block, foo, nil, nil},
+    Expected = {c, '', [{c, foo, []}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
-    Expected = {{c, '', [{c, foo, []}]}, foo, []},
-    ?assertEqual(Expected, Result).
-
-eval_endblock_test() ->
-    I = erlcfg_interp:new(),
-    {I1, foo, []} = erlcfg_interp:eval(I, '', {block, foo, noop}),
-    Result = erlcfg_interp:eval(I1, foo, {endblock, noop, noop}),
-
-    Expected = {{c, '', [{c, foo, []}]}, '', foo},
-    ?assertEqual(Expected, Result).
+eval_nested_blocks_test() ->
+    Ast = {block, foo, {set, foo, bar, {block, foo1, {set, foo, bar, nil}, nil}}, {set, foo1, bar1, nil}},
+    Expected = {c, '', [{c, foo, [{d, foo, bar}, {c, foo1, [{d, foo, bar}]}]}, {d, foo1, bar1}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_cons_test() ->
     Interp = erlcfg_interp:new(),

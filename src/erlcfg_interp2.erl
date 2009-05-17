@@ -28,5 +28,16 @@ eval(#set{key=Key, value=Value, next=Next}, #interp{scope=Scope}=State) ->
             eval(Next, StateAfterValueEval#interp{node=NewNode})
     end;
 
+eval(#block{name=Name, child=Child, next=Next}, #interp{node=Node, scope=Scope}=State) ->
+    ScopedName = node_addr:join([Scope, Name]),
+
+    case erlcfg_node:set(Node, ScopedName) of
+        {not_found, InvalidAddress} ->
+            throw({not_found, InvalidAddress});
+        NewNode ->
+            {EvalState, _Value} = eval(Child, State#interp{node=NewNode, scope=ScopedName}),
+            eval(Next, EvalState#interp{scope=Scope})
+    end;
+
 eval(Value, State) ->
     {State, Value}.
