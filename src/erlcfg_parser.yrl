@@ -33,8 +33,8 @@ data -> variable   : {get, get_value('$1')}.
 
 list -> '(' elements ')' : '$2'.
 elements -> element ',' elements    : {cons, '$1', '$3'}.
-elements -> element     : {cons, '$1', nil}.
-elements -> '$empty' : nil.
+elements -> element     : {cons, '$1', []}.
+elements -> '$empty' : [].
 element -> value : '$1'.
 
 Erlang code.

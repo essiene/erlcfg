@@ -41,6 +41,10 @@ eval(#block{name=Name, child=Child, next=Next}, #interp{node=Node, scope=Scope}=
 eval(nil, State) ->
     State;
 
+% an empty list
+eval([], State) ->
+    State#interp{value=[]};
+
 eval(Data, State) when is_record(Data, cons) ->
     State#interp{value=cons(Data)};
 
@@ -53,7 +57,7 @@ eval(Data, State) when is_number(Data); is_atom(Data) ->
 eval(Unknown, _State) -> % TODO: capture current scope?
     throw({illegal_command, Unknown}).
 
-cons(#cons{head=Head, tail=nil}) ->
+cons(#cons{head=Head, tail=[]}) ->
     [Head];
 cons(#cons{head=Head, tail=Tail}) ->
     [Head | cons(Tail)].
