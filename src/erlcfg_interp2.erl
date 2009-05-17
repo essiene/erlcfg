@@ -1,0 +1,3 @@
+-module(erlcfg_interp2).
+-export().
+-include("erlcfg.hrl").
