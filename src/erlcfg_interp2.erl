@@ -45,6 +45,9 @@ eval(nil, State) ->
 eval([], State) ->
     {State, []};
 
+eval(Data, State) when is_record(Data, cons) ->
+    {State, cons(Data)};
+
 eval(Data, State) when is_binary(Data) ->
     {State, binary_to_list(Data)};
 
@@ -53,3 +56,8 @@ eval(Data, State) when is_number(Data); is_atom(Data) ->
 
 eval(Unknown, _State) -> % TODO: capture current scope?
     throw({illegal_command, Unknown}).
+
+cons(#cons{head=Head, tail=nil}) ->
+    [Head];
+cons(#cons{head=Head, tail=Tail}) ->
+    [Head | cons(Tail)].
