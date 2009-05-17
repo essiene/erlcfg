@@ -14,3 +14,7 @@
 -record(cons, {
         head,
         tail=nil}).
+
+-record(interp, {
+        node,
+        scope=''}).
