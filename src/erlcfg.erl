@@ -3,6 +3,7 @@
         new/0,
         new/1
     ]).
+-include("erlcfg.hrl").
 
 new() ->
     erlcfg_data:new(erlcfg_node:new()).
@@ -15,8 +16,8 @@ new(FileName) ->
                 {ok, TokenList, _LineCount} ->
                     case erlcfg_parser:parse(TokenList) of
                         {ok, Ast} ->
-                            Data = erlcfg_ast:traverse(Ast),
-                            erlcfg_data:new(Data);
+                            InterpState = erlcfg_interp2:eval(Ast),
+                            erlcfg_data:new(InterpState#interp.node);
                         Other ->
                             Other
                     end;
