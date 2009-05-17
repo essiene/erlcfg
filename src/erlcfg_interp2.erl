@@ -39,5 +39,17 @@ eval(#block{name=Name, child=Child, next=Next}, #interp{node=Node, scope=Scope}=
             eval(Next, EvalState#interp{scope=Scope})
     end;
 
-eval(Value, State) ->
-    {State, Value}.
+eval(nil, State) ->
+    {State, []};
+
+eval([], State) ->
+    {State, []};
+
+eval(Data, State) when is_binary(Data) ->
+    {State, binary_to_list(Data)};
+
+eval(Data, State) when is_number(Data); is_atom(Data) ->
+    {State, Data};
+
+eval(Unknown, _State) -> % TODO: capture current scope?
+    throw({illegal_command, Unknown}).

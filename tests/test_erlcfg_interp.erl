@@ -27,6 +27,26 @@ eval_nested_blocks_test() ->
     Expected = {c, '', [{c, foo, [{d, foo, bar}, {c, foo1, [{d, foo, bar}]}]}, {d, foo1, bar1}]},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
+eval_integer_test() ->
+    Ast = {set, foo, 5, nil},
+    Expected = {c, '', [{d, foo, 5}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
+
+eval_float_test() ->
+    Ast = {set, foo, -5.5e-15, nil},
+    Expected = {c, '', [{d, foo, -5.5e-15}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
+
+eval_atom_test() ->
+    Ast = {set, foo, a95, nil},
+    Expected = {c, '', [{d, foo, a95}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
+
+eval_string_test() ->
+    Ast = {set, foo, <<"A String">>, nil},
+    Expected = {c, '', [{d, foo, "A String"}]},
+    ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
+
 eval_cons_test() ->
     Interp = erlcfg_interp:new(),
     {Interp, '', Value} = erlcfg_interp:eval(Interp, '', nil),
@@ -44,6 +64,5 @@ eval_set_no_parent_test()  ->
     ?assertThrow(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_illegal_command_test()  ->
-    Interp = erlcfg_interp:new(),
     Expected = {illegal_command, {read, moo, noop}},
-    ?assertThrow(Expected, erlcfg_interp:eval(Interp, '', {read, moo, noop})).
+    ?assertThrow(Expected, erlcfg_interp2:eval({read, moo, noop})).
