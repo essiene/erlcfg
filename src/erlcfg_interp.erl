@@ -1,4 +1,4 @@
--module(erlcfg_interp2).
+-module(erlcfg_interp).
 -export([eval/1, eval/2]).
 -include("erlcfg.hrl").
 

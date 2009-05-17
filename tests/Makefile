@@ -14,7 +14,6 @@ OBJECTS=test_erlcfg_lexer \
 	  test_erlcfg_node_find \
 	  test_erlcfg_node \
 	  test_erlcfg_interp \
-	  test_erlcfg_ast \
 	  test_erlcfg_data \
 	  test_erlcfg
 

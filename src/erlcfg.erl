@@ -16,7 +16,7 @@ new(FileName) ->
                 {ok, TokenList, _LineCount} ->
                     case erlcfg_parser:parse(TokenList) of
                         {ok, Ast} ->
-                            InterpState = erlcfg_interp2:eval(Ast),
+                            InterpState = erlcfg_interp:eval(Ast),
                             erlcfg_data:new(InterpState#interp.node);
                         Other ->
                             Other

@@ -28,8 +28,6 @@ OBJECTS=erlcfg_lexer \
 		node_addr \
 		erlcfg_node \
 		erlcfg_interp \
-		erlcfg_interp2 \
-		erlcfg_ast \
 		erlcfg_data \
 		erlcfg
 
