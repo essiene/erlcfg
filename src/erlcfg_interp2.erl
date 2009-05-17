@@ -4,24 +4,23 @@
 
 
 eval(Ast) ->
-    InterpState = #interp{node=erlcfg_node:new(), scope=''},
-    {EvalState, _Value} = eval(Ast, InterpState),
-    EvalState#interp.node.
+    InterpState = #interp{node=erlcfg_node:new()},
+    eval(Ast, InterpState).
 
 eval(#get{address=Address}, #interp{node=Node}=State) ->
     case erlcfg_node:get(Node, Address) of
         {value, Value} ->
-            {State, Value};
+            State#interp{value=Value};
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress})
     end;
 
 eval(#set{key=Key, value=Value, next=Next}, #interp{scope=Scope}=State) ->
-    {StateAfterValueEval, EvalValue} = eval(Value, State),
+    StateAfterValueEval = eval(Value, State),
 
     ScopedKey = node_addr:join([Scope, Key]),
 
-    case erlcfg_node:set(StateAfterValueEval#interp.node, ScopedKey, EvalValue) of
+    case erlcfg_node:set(StateAfterValueEval#interp.node, ScopedKey, StateAfterValueEval#interp.value) of
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress});
         NewNode ->
@@ -35,24 +34,21 @@ eval(#block{name=Name, child=Child, next=Next}, #interp{node=Node, scope=Scope}=
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress});
         NewNode ->
-            {EvalState, _Value} = eval(Child, State#interp{node=NewNode, scope=ScopedName}),
+            EvalState = eval(Child, State#interp{node=NewNode, scope=ScopedName}),
             eval(Next, EvalState#interp{scope=Scope})
     end;
 
 eval(nil, State) ->
-    {State, []};
-
-eval([], State) ->
-    {State, []};
+    State;
 
 eval(Data, State) when is_record(Data, cons) ->
-    {State, cons(Data)};
+    State#interp{value=cons(Data)};
 
 eval(Data, State) when is_binary(Data) ->
-    {State, binary_to_list(Data)};
+    State#interp{value=binary_to_list(Data)};
 
 eval(Data, State) when is_number(Data); is_atom(Data) ->
-    {State, Data};
+    State#interp{value=Data};
 
 eval(Unknown, _State) -> % TODO: capture current scope?
     throw({illegal_command, Unknown}).

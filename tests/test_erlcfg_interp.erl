@@ -4,47 +4,47 @@
 
 
 eval_nil_test() ->
-    Expected = {c, '', []},
+    Expected = {interp, {c, '', []}, nil, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(nil)).
 
 eval_set_test()  ->
-    Expected = {c, '', [{d, foo, bar}]},
+    Expected = {interp, {c, '', [{d, foo, bar}]}, bar, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(#set{key=foo, value=bar, next=nil})),
     ?assertEqual(Expected, erlcfg_interp2:eval({set, foo, bar, nil})).
 
 eval_set_nested_get_test()  ->
     Ast = {set, foo, bar, {set, moo, {get, foo}, nil}},
-    Expected = {c, '', [{d, foo, bar}, {d, moo, bar}]},
+    Expected = {interp, {c, '', [{d, foo, bar}, {d, moo, bar}]}, bar, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_block_test() ->
     Ast = {block, foo, nil, nil},
-    Expected = {c, '', [{c, foo, []}]},
+    Expected = {interp, {c, '', [{c, foo, []}]}, nil, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_nested_blocks_test() ->
     Ast = {block, foo, {set, foo, bar, {block, foo1, {set, foo, bar, nil}, nil}}, {set, foo1, bar1, nil}},
-    Expected = {c, '', [{c, foo, [{d, foo, bar}, {c, foo1, [{d, foo, bar}]}]}, {d, foo1, bar1}]},
+    Expected = {interp, {c, '', [{c, foo, [{d, foo, bar}, {c, foo1, [{d, foo, bar}]}]}, {d, foo1, bar1}]}, bar1, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_integer_test() ->
     Ast = {set, foo, 5, nil},
-    Expected = {c, '', [{d, foo, 5}]},
+    Expected = {interp, {c, '', [{d, foo, 5}]}, 5, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_float_test() ->
     Ast = {set, foo, -5.5e-15, nil},
-    Expected = {c, '', [{d, foo, -5.5e-15}]},
+    Expected = {interp, {c, '', [{d, foo, -5.5e-15}]}, -5.5e-15, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_atom_test() ->
     Ast = {set, foo, a95, nil},
-    Expected = {c, '', [{d, foo, a95}]},
+    Expected = {interp, {c, '', [{d, foo, a95}]}, a95, ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_string_test() ->
     Ast = {set, foo, <<"A String">>, nil},
-    Expected = {c, '', [{d, foo, "A String"}]},
+    Expected = {interp, {c, '', [{d, foo, "A String"}]}, "A String", ''},
     ?assertEqual(Expected, erlcfg_interp2:eval(Ast)).
 
 eval_cons_test() ->

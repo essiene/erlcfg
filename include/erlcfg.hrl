@@ -17,4 +17,5 @@
 
 -record(interp, {
         node,
+        value=nil,
         scope=''}).
