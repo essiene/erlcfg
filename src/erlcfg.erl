@@ -6,24 +6,12 @@
 -include("erlcfg.hrl").
 
 new() ->
-    erlcfg_data:new(erlcfg_node:new()).
+    {ok, erlcfg_data:new(erlcfg_node:new())}.
 
 new(FileName) ->
-    case file:read_file(FileName) of
-        {ok, Binary} ->
-            String = binary_to_list(Binary),
-            case erlcfg_lexer:string(String) of
-                {ok, TokenList, _LineCount} ->
-                    case erlcfg_parser:parse(TokenList) of
-                        {ok, Ast} ->
-                            InterpState = erlcfg_interp:eval(Ast),
-                            erlcfg_data:new(InterpState#interp.node);
-                        Other ->
-                            Other
-                    end;
-                Other ->
-                    Other
-            end;
-        {error, Reason} ->
-            {error, Reason}
-    end.
+    {ok, Binary} = file:read_file(FileName),
+    String = binary_to_list(Binary),
+    {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
+    {ok, Ast} = erlcfg_parser:parse(TokenList),
+    InterpState = erlcfg_interp:eval(Ast),
+    {ok, erlcfg_data:new(InterpState#interp.node)}.

@@ -2,10 +2,10 @@
 -include_lib("eunit/include/eunit.hrl").
 
 new_no_configfile_test() ->
-    ?assertEqual({erlcfg_data, {c, '', []}}, erlcfg:new()).
+    ?assertEqual({ok, {erlcfg_data, {c, '', []}}}, erlcfg:new()).
 
 new_test() ->
-    Config = erlcfg:new("flat.conf"),
+    {ok, Config} = erlcfg:new("flat.conf"),
     ?assertEqual(1, Config:get(one_int)),
     ?assertEqual(10.038e-10, Config:get(two_float)),
     ?assertEqual(atom3, Config:get(three_atom)),
@@ -13,12 +13,12 @@ new_test() ->
     ?assertEqual("A string", Config:get(five_string)).
 
 new_variable_test() ->
-    Config = erlcfg:new("flat.conf"),
+    {ok, Config} = erlcfg:new("flat.conf"),
     ?assertEqual(1, Config:get(six_variable)),
     ?assertEqual(awesome@quoted.atom, Config:get(seven_variable)).
 
 nested_file_test() ->
-    Config = erlcfg:new("full.conf"),
+    {ok, Config} = erlcfg:new("full.conf"),
     ?assertEqual("www.appserver.com", Config:get(common.appserver)),
     ?assertEqual(5038, Config:get(common.port.ami)),
     ?assertEqual(9119, Config:get(common.port.rest)),
@@ -36,4 +36,3 @@ nested_file_test() ->
     ?assertEqual(5, Config:get(callentry.rttl)),
     ?assertEqual(60, Config:get(callentry.qttl)),
     ?assertEqual(high, Config:get(callentry.requeue.priority)).
-
