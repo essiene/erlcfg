@@ -19,7 +19,8 @@ $(EBIN_DIR)/%.app: %.app
 	@cp $< $@
 
 
-LEEX_OBJECTS=erlcfg_lexer
+LEEX_OBJECTS=erlcfg_lexer \
+			 erlcfg_schema_lexer
 
 YECC_OBJECTS=erlcfg_parser
 
