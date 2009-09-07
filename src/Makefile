@@ -22,10 +22,13 @@ $(EBIN_DIR)/%.app: %.app
 LEEX_OBJECTS=erlcfg_lexer \
 			 erlcfg_schema_lexer
 
-YECC_OBJECTS=erlcfg_parser
+YECC_OBJECTS=erlcfg_parser \
+			 erlcfg_schema_parser
 
 OBJECTS=erlcfg_lexer \
 		erlcfg_parser \
+		erlcfg_schema_lexer \
+		erlcfg_schema_parser \
 		node_addr \
 		erlcfg_node \
 		erlcfg_interp \
