@@ -1,7 +1,8 @@
 -module(erlcfg).
 -export([
         new/0,
-        new/1
+        new/1,
+        check/1
     ]).
 -include("erlcfg.hrl").
 
@@ -15,3 +16,10 @@ new(FileName) ->
     {ok, Ast} = erlcfg_parser:parse(TokenList),
     {ok, InterpState} = erlcfg_interp:interpret(Ast),
     {ok, erlcfg_data:new(InterpState#interp.node)}.
+
+check(FileName) ->
+    {ok, Binary} = file:read_file(FileName),
+    String = binary_to_list(Binary),
+    {ok, TokenList, _LineCount} = erlcfg_schema_lexer:string(String),
+    {ok, Ast} = erlcfg_schema_parser:parse(TokenList),
+    Ast.
