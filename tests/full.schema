@@ -1,0 +1,30 @@
+type Priority = high | medium | low;
+
+Priority foo;
+
+general {
+    [string] listen;
+
+    int port;
+
+    wait {
+        int short;
+        int long;
+    }
+}
+
+ami {
+    string host;
+#   int (> 1024) port = 5238;
+    string username;
+    string secret;
+}
+
+callentry {
+    int rttl;
+    int qttl;
+
+    requeue {
+        Priority priority;
+    }
+}
