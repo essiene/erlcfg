@@ -18,7 +18,11 @@ analyse(Current, [], Types0) ->
 
 eval(#typedef{name=Name, options=OptionAst}, Types) ->
     Options = cons(OptionAst),
-    [{Name, Options}|Types];
+    Fun = fun(Val) ->
+            lists:member(Val, Options)
+    end,
+    TypeTest = #type_test{type=Name, test=Fun},
+    [{Name, TypeTest}|Types];
 eval(_Other, Types) ->
     Types.
 
