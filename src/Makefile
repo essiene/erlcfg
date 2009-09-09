@@ -32,7 +32,7 @@ OBJECTS=erlcfg_lexer \
 		node_addr \
 		erlcfg_node \
 		erlcfg_interp \
-		erlcfg_schema_semantic_stage1\
+		erlcfg_schema_analyser1\
 		erlcfg_data \
 		erlcfg
 

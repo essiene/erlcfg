@@ -1,4 +1,4 @@
--module(erlcfg_schema_semantic_stage1).
+-module(erlcfg_schema_analyser1).
 -include("schema.hrl").
 -export([analyse/1]).
 
