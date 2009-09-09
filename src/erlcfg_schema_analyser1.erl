@@ -49,7 +49,7 @@ eval(#typedef{name=Name, options=OptionAst}, Types) ->
     Fun = fun(Val) ->
             lists:member(Val, Options)
     end,
-    TypeTest = #type_test{type=Name, test=Fun},
+    TypeTest = #validator{type=Name, test=Fun},
     [{Name, TypeTest}|Types];
 eval(_Other, Types) ->
     Types.
