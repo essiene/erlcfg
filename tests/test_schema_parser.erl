@@ -46,3 +46,14 @@ parse_typedef_test() ->
             }
     ]},
     ?assertEqual(Expected, Result).
+
+parse_empty_block_test() ->
+    Tokens = [
+        {atom, 1, block1},
+        {'{', 1},
+        {'}', 1}
+    ],
+
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [{block, block1, []}]},
+    ?assertEqual(Expected, Result).
