@@ -2,6 +2,34 @@
 -include("schema.hrl").
 -export([analyse/1]).
 
+% The result of this transform on the AST is a mapping like
+% shown below:
+% 
+% [
+%        {'CustomType1', #validator{name='CustomType1', 
+%                                  test=CustomType1Fun}
+%        },
+%        {customtype2, #validator{name=customtype2,
+%                                 test=CustomeType2Fun}
+%        },
+%        {integer, #validator{type=integer, 
+%                             test=fun is_integer/1}
+%        },
+%        {float, #validator{type=float, 
+%                          test=fun is_float/1}
+%        },
+%        {atom, #validator{type=atom, 
+%                          test=fun is_atom/1}
+%        },
+%        {string, #validator{type=string, 
+%                            test=fun is_binary/1}
+%        },
+%        {boolean, #validator{type=boolean, 
+%                             test=fun is_boolean/1}
+%        }
+% ]
+
+
 analyse([]) ->
     ?DEFAULT_TYPE_MAP;
 analyse([Head|Rest]) ->
