@@ -1,0 +1,153 @@
+Introduction
+============
+The schema validator may be said to be inspired by XML schemas, but the truth is
+that I wasn't really thinking of XML schemas when I first thought this up. What
+I was thinking about rather, is the number of times I have had to edit a config
+file under pressure while logged in remotely, and just when I think its all fine
+and dandy and I go ahead to restart the service, it breaks in all sorts of nice
+fragments. The nice ones just refuse to start the service... the evil ones, go
+ahead with your bad config, and you log out... only to get a call from an irate
+client early the next morning!!!
+
+Anyways, the idea behind the schema validator is to allow an application admin
+to easily *proof* that the config file is *correct*. This concept is inspired by
+strongly typed functional programming languages that try to proof a program is
+*correct* at compile time.
+
+So how does all this happen?
+
+Ast Structure
+=============
+First just like the config file parser itself, I lex and parse the schema file,
+but in this case, I produce a List of ASTs, which may end up containing lists of
+ASTs. Actually, all objects on the same scope end up in the same list.
+
+A definition like:
+
+node1 {
+    int intkey1;
+    string stringkey1;
+}
+
+node2 {
+    int intkey2;
+    string stringkey2;
+}
+
+boolean truefalse;
+
+
+Will produce:
+
+[
+    #block{name=node1,
+        child=[
+            #declaration{type=int, name=intkey1},
+            #declaration{type=string, name=stringkey1}
+        ]},
+
+    #block{name=node2,
+        child=[
+            #declaration{type=int, name=intkey2},
+            #declaration{type=string, name=stringkey2}
+        ]},
+
+    #declaration{type=boolean, name=truefalse}
+]
+
+
+Semantic Analyses Stage 1 
+=========================
+
+At this stage, the AST is traversed, and all custom type definitions are
+processed and added to a Type checker map which looks like:
+
+[
+        {'CustomType1', #validator{name='CustomType1', 
+                                  test=CustomType1Fun}
+        },
+        {customtype2, #validator{name=customtype2,
+                                 test=CustomeType2Fun}
+        },
+        {integer, #validator{type=integer, 
+                             test=fun is_integer/1}
+        },
+        {float, #validator{type=float, 
+                          test=fun is_float/1}
+        },
+        {atom, #validator{type=atom, 
+                          test=fun is_atom/1}
+        },
+        {string, #validator{type=string, 
+                            test=fun is_binary/1}
+        },
+        {boolean, #validator{type=boolean, 
+                             test=fun is_boolean/1}
+        }
+]
+
+This structure is a map which relates the custom types to a validator record,
+which contains a erlang Fun. On closer inspection of the the rest of the list we
+can guess that all the fun elements contained are type checking functions.
+Infact, all the funs are simple predicates that recieve a single parameter and
+return true if the parameter is a valid value of that type.
+
+For instance, for integers, we test with is_integer, but for a type def like:
+
+type TennisScore = love | 15 | 30 | game;
+
+We'll generate the following ast:
+
+#typedef{name='TennisScore', 
+         options=#cons{head=love, 
+                       tail=#cons{head=15,
+                                  tail=#cons{head=30,
+                                             tail=#cons{head=game,tail=nil}
+                                  }
+                       }
+             }
+         }
+
+The options member will get eval'd to a list [love, 15, 30, game], so we can
+build a TennisScoreFun validator fun like so:
+
+TennisScoreFun = fun(Val) ->
+    lists:member(Val, Options)
+end
+
+We now can use TennisScoreFun as the test for a validator record which looks
+like:
+
+#validator{type='TennisScore', test=TennisScoreFun}
+
+And then we plonk that into our map and stage one is done.
+
+Schema Type Checking And Node Map Generation
+============================================
+
+The purpose of this stage is to ensure that we are not using any types in the
+schema definition that we have not defined, and then to generate a  node address
+to type mapping which looks like:
+
+[
+    {node1.intkey1, #validator{name=integer, 
+                               test=fun is_integer/1}
+    },
+    {node1.stringkey1, #validator{name=string, 
+                                  test=fun is_binary/1}
+    },
+    {node2.intkey2, #validator{name=integer, 
+                               test=fun is_integer/1}
+    },
+    {node2.stringkey2, #validator{name=string, 
+                                  test=fun is_binary/1}
+    },
+    {truefalse, #validator{name=boolean, 
+                           test=fun is_boolean/1}
+    }
+]
+
+This structure is the final data that is needed by the checker proper, and will
+be used when the config file AST is being processed. Each fully named node, will
+be used to fetch the appropriate validator and that will be used to validate the
+value of the node that is being processed.
