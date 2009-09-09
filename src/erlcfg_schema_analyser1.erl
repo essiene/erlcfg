@@ -3,9 +3,9 @@
 -export([analyse/1]).
 
 analyse([]) ->
-    [integer, float, atom, string, bool];
+    ?DEFAULT_TYPE_MAP;
 analyse([Head|Rest]) ->
-    Types = [integer, float, atom, string, bool],
+    Types = ?DEFAULT_TYPE_MAP,
     analyse(Head, Rest, Types).
 
 analyse(Current, [Head|Rest], Types0) ->
