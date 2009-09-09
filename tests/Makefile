@@ -9,6 +9,7 @@ $(EBIN_DIR)/%.beam: %.erl
 
 
 OBJECTS=test_erlcfg_lexer \
+	  test_schema_lexer \
 	  test_erlcfg_parser \
 	  test_node_addr \
 	  test_erlcfg_node_find \
