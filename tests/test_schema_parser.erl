@@ -57,3 +57,90 @@ parse_empty_block_test() ->
     Result = erlcfg_schema_parser:parse(Tokens),
     Expected = {ok, [{block, block1, []}]},
     ?assertEqual(Expected, Result).
+
+parse_block_with_declarations_test() ->
+    Tokens = [
+        {atom, 1, block1},
+        {'{', 1},
+            {datatype, 1, string}, {atom, 1, foo}, {';', 1},
+            {datatype, 1, int}, {atom, 1, bar}, {';', 1},
+        {'}', 1}
+    ],
+
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [{block, block1, [
+                    {declaration, string, foo},
+                    {declaration, int, bar}
+                ]}]},
+    ?assertEqual(Expected, Result).
+
+parse_block_with_nested_block_test() ->
+    Tokens = [
+        {atom, 1, block1},
+        {'{', 1},
+            {datatype, 1, string}, {atom, 1, foo}, {';', 1},
+            {datatype, 1, int}, {atom, 1, bar}, {';', 1},
+            {atom, 1, block1},
+            {'{', 1},
+                {datatype, 1, string}, {atom, 1, foo}, {';', 1},
+                {datatype, 1, int}, {atom, 1, bar}, {';', 1},
+            {'}', 1},
+        {'}', 1}
+    ],
+
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [{block, block1, [
+                    {declaration, string, foo},
+                    {declaration, int, bar},
+                    {block, block1, [
+                        {declaration, string, foo},
+                        {declaration, int, bar}
+                    ]}
+                ]}]},
+    ?assertEqual(Expected, Result).
+
+parse_complex_with_typedefs_and_blocks_test() ->
+    Tokens = [
+        {keyword_type, 1, type}, 
+            {atom, 1, newtype1},
+            {'=', 1}, 
+                {atom, 1, foo}, 
+                    {'|', 1}, 
+                {atom, 1, bar}, 
+             {';', 1},
+
+        {atom, 1, block1},
+        {'{', 1},
+            {datatype, 1, string}, {atom, 1, foo}, {';', 1},
+            {datatype, 1, int}, {atom, 1, bar}, {';', 1},
+            {atom, 1, block1},
+            {'{', 1},
+                {datatype, 1, string}, {atom, 1, foo}, {';', 1},
+                {datatype, 1, int}, {atom, 1, bar}, {';', 1},
+            {'}', 1},
+        {'}', 1},
+
+        {keyword_type, 1, type}, 
+            {atom, 1, newtype2},
+            {'=', 1}, 
+                {atom, 1, moo}, 
+                    {'|', 1}, 
+                {atom, 1, meh}, 
+             {';', 1}
+
+    ],
+
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [
+            {typedef, newtype1, {cons, foo, {cons, bar, nil}}},
+            {block, block1, [
+                    {declaration, string, foo},
+                    {declaration, int, bar},
+                    {block, block1, [
+                        {declaration, string, foo},
+                        {declaration, int, bar}
+                    ]}
+             ]},
+            {typedef, newtype2, {cons, moo, {cons, meh, nil}}}
+    ]},
+    ?assertEqual(Expected, Result).
