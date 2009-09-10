@@ -40,8 +40,7 @@ process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types) ->
     Scope0 = [Name | Scope],
     analyse(Head, Rest, Scope0, Accm, Types);
 process(#declaration{type=DeclaredType, name=Name}, Scope, Accm, Types) ->
-    Scope0 = lists:reverse([Name|Scope]),
-    Addr = node_addr:join(Scope0),
+    Addr = build_node_addr(Name, Scope),
 
     case proplists:get_value(Addr, Accm) of
         undefined ->
@@ -58,6 +57,9 @@ process(_Other, _Scope, Accm, _Types) ->
     Accm.
 
 
+build_node_addr(Name, Scope) ->
+    Scope0 = lists:reverse([Name|Scope]),
+    node_addr:join(Scope0).
 
 
 
