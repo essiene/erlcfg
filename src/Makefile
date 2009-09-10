@@ -33,6 +33,7 @@ OBJECTS=erlcfg_lexer \
 		erlcfg_node \
 		erlcfg_interp \
 		erlcfg_schema_analyser1\
+		erlcfg_schema_analyser2\
 		erlcfg_data \
 		erlcfg
 
