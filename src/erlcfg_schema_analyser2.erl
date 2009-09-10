@@ -39,11 +39,23 @@ analyse(Current, [Head|Rest], Scope, Accm, Types) ->
 process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types) ->
     Scope0 = [Name | Scope],
     analyse(Head, Rest, Scope0, Accm, Types);
+process(#declaration{type=#listof{type=DeclaredType}, name=Name}, Scope, Accm, Types) ->
+    Addr = build_node_addr(Name, Scope),
+    ok = check_is_already_defined(Addr, Accm),
+    {ok, Validator} = check_has_known_type(DeclaredType, Types),
+
+    Fun = Validator#validator.test,
+    ListFun = fun(Val) ->
+            Val2 = lists:filter(Fun, Val),
+            Val == Val2
+    end,
+
+    [{Addr, Validator#validator{test=ListFun}}|Accm];
 process(#declaration{type=DeclaredType, name=Name}, Scope, Accm, Types) ->
     Addr = build_node_addr(Name, Scope),
     ok = check_is_already_defined(Addr, Accm),
-    {ok, Fun} = check_has_known_type(DeclaredType, Types),
-    [{Addr, Fun}|Accm];
+    {ok, Validator} = check_has_known_type(DeclaredType, Types),
+    [{Addr, Validator}|Accm];
 process(_Other, _Scope, Accm, _Types) ->
     Accm.
 
@@ -64,6 +76,6 @@ check_has_known_type(DeclaredType, Types) ->
     case proplists:get_value(DeclaredType, Types) of
         undefined ->
             {error, {unknown_type, DeclaredType}};
-        Fun ->
-            {ok, Fun}
+        Validator ->
+            {ok, Validator}
     end.
