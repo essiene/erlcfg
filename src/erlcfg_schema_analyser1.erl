@@ -31,10 +31,10 @@
 
 
 analyse([]) ->
-    ?DEFAULT_TYPE_MAP;
+    {ok, ?DEFAULT_TYPE_MAP};
 analyse([Head|Rest]) ->
     Types = ?DEFAULT_TYPE_MAP,
-    analyse(Head, Rest, Types).
+    {ok, analyse(Head, Rest, Types)}.
 
 analyse(Current, [Head|Rest], Types0) ->
     Types1 = eval(Current, Types0),

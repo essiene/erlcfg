@@ -22,4 +22,5 @@ check(FileName) ->
     String = binary_to_list(Binary),
     {ok, TokenList, _LineCount} = erlcfg_schema_lexer:string(String),
     {ok, Ast} = erlcfg_schema_parser:parse(TokenList),
-    erlcfg_schema_analyser1:analyse(Ast).
+    {ok, Types} = erlcfg_schema_analyser1:analyse(Ast),
+    erlcfg_schema_analyser2:analyse(Ast, Types).
