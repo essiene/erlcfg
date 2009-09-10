@@ -41,18 +41,9 @@ process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types) ->
     analyse(Head, Rest, Scope0, Accm, Types);
 process(#declaration{type=DeclaredType, name=Name}, Scope, Accm, Types) ->
     Addr = build_node_addr(Name, Scope),
-
-    case proplists:get_value(Addr, Accm) of
-        undefined ->
-            case proplists:get_value(DeclaredType, Types) of
-                undefined ->
-                    throw({unknown_type_used, Addr});
-                Fun ->
-                    [{Addr, Fun} | Accm]
-            end;
-        _Found ->
-            throw({type_already_defined_in_scope, Addr})
-    end;
+    ok = check_is_already_defined(Addr, Accm),
+    {ok, Fun} = check_has_known_type(DeclaredType, Types),
+    [{Addr, Fun}|Accm];
 process(_Other, _Scope, Accm, _Types) ->
     Accm.
 
@@ -61,6 +52,18 @@ build_node_addr(Name, Scope) ->
     Scope0 = lists:reverse([Name|Scope]),
     node_addr:join(Scope0).
 
+check_is_already_defined(Addr, Accm) ->
+    case proplists:get_value(Addr, Accm) of
+        undefined ->
+            ok;
+        _Found ->
+            {error, {type_already_defined_in_scope, Addr}}
+    end.
 
-
-
+check_has_known_type(DeclaredType, Types) ->
+    case proplists:get_value(DeclaredType, Types) of
+        undefined ->
+            {error, {unknown_type, DeclaredType}};
+        Fun ->
+            {ok, Fun}
+    end.
