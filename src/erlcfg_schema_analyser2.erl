@@ -39,7 +39,7 @@ analyse(Current, [Head|Rest], Scope, Accm, Types) ->
 process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types) ->
     Scope0 = [Name | Scope],
     analyse(Head, Rest, Scope0, Accm, Types);
-process(#declaration{type=#listof{type=DeclaredType}, name=Name}, Scope, Accm, Types) ->
+process(#declaration{type=#listof{type=DeclaredType}, name=Name, default=Default}, Scope, Accm, Types) ->
     Addr = build_node_addr(Name, Scope),
     ok = check_is_already_defined(Addr, Accm),
     {ok, Validator} = check_has_known_type(DeclaredType, Types),
@@ -50,12 +50,16 @@ process(#declaration{type=#listof{type=DeclaredType}, name=Name}, Scope, Accm, T
             Val == Val2
     end,
 
-    [{Addr, Validator#validator{test=ListFun}}|Accm];
-process(#declaration{type=DeclaredType, name=Name}, Scope, Accm, Types) ->
+    Validator0 = Validator#validator{test=ListFun},
+    {ok, Default0} = check_typeof_default(Default, Validator0),
+
+    [{Addr, {Default0, Validator0}}|Accm];
+process(#declaration{type=DeclaredType, name=Name, default=Default}, Scope, Accm, Types) ->
     Addr = build_node_addr(Name, Scope),
     ok = check_is_already_defined(Addr, Accm),
     {ok, Validator} = check_has_known_type(DeclaredType, Types),
-    [{Addr, Validator}|Accm];
+    {ok, Default0} = check_typeof_default(Default, Validator),
+    [{Addr, {Default0, Validator}}|Accm];
 process(_Other, _Scope, Accm, _Types) ->
     Accm.
 
