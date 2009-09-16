@@ -1,9 +1,10 @@
 type Priority = high | medium | low;
+#type PortValues = [0 to 50] | [100 to 500];
 
 Priority foo;
 
 general {
-    [string] listen;
+    [string] listen = ("0.0.0.0");
 
     int port;
 
@@ -15,7 +16,7 @@ general {
 
 ami {
     string host;
-#   int (> 1024) port = 5238;
+    int port = 5238;
     string username;
     string secret;
 }
