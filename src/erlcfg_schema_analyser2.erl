@@ -79,3 +79,27 @@ check_has_known_type(DeclaredType, Types) ->
         Validator ->
             {ok, Validator}
     end.
+
+check_typeof_default(?ERLCFG_SCHEMA_NIL, _Validator) ->
+    {ok, ?ERLCFG_SCHEMA_NIL};
+check_typeof_default(#cons{}=Cons, Validator) ->
+    {ok, Cons0} = build_cons(Cons, []),
+    check_typeof_default(Cons0, Validator);
+check_typeof_default(Value, Validator) ->
+    Fun = Validator#validator.test,
+    case Fun(Value) of
+        true ->
+            {ok, Value};
+        false ->
+            {error, 
+                {invalid_default_value, Value, {expected, Validator#validator.type}}
+            }
+    end.
+
+build_cons(#cons{head=Head, tail=nil}, Accm) ->
+    Accm0 = [Head|Accm],
+    {ok, lists:reverse(Accm0)};
+build_cons(#cons{head=Head, tail=Tail}, Accm) ->
+    Accm0 = [Head|Accm],
+    build_cons(Tail, Accm0).
+
