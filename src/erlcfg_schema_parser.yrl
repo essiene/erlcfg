@@ -1,8 +1,8 @@
 Nonterminals
-schema items item typedef typedef_options data block block_contents block_data declaration type_signature.
+schema items item typedef typedef_options data block block_contents block_data declaration type_signature list elements element.
 
 Terminals
-keyword_type datatype integer float atom quoted_atom string bool '=' ';' '{' '}' '[' ']' '|'.
+keyword_type datatype integer float atom quoted_atom string bool '=' ';' '{' '}' '[' ']' '|' ',' '(' ')'.
 
 Rootsymbol schema.
 
@@ -35,12 +35,19 @@ type_signature -> datatype : get_value('$1').
 type_signature -> atom : get_value('$1').
 type_signature -> '[' type_signature ']' : list_of_type('$2').
 
+data -> list       : '$1'.
 data -> integer    : get_value('$1').
 data -> float      : get_value('$1').
 data -> atom       : get_value('$1').
 data -> quoted_atom: get_value('$1').
 data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
+
+list -> '(' elements ')' : '$2'.
+elements -> element ',' elements    : {cons, '$1', '$3'}.
+elements -> element     : {cons, '$1', nil}.
+elements -> '$empty' : nil.
+element -> data : '$1'.
 
 Erlang code.
 %nothing

@@ -150,3 +150,18 @@ parse_complex_with_typedefs_and_blocks_test() ->
             {typedef, newtype2, {cons, moo, {cons, meh, nil}}}
     ]},
     ?assertEqual(Expected, Result).
+
+parse_list_of_int_declaration_test() ->
+    Tokens = [{'[', 1}, {datatype, 1, string}, {']', 1}, {atom, 1, foo}, {';', 1}],
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [{declaration, {listof, string}, foo, nil}]},
+    ?assertEqual(Expected, Result).
+
+
+parse_list_of_int_declaration_with_default_test() ->
+    Tokens = [{'[', 1}, {datatype, 1, string}, {']', 1}, {atom, 1, foo}, {'=',
+            1}, {'(', 1}, {string, 1, <<"2">>}, {',', 1}, {string, 1, <<"3">>}, {')', 1}, {';', 1}],
+    Result = erlcfg_schema_parser:parse(Tokens),
+    Expected = {ok, [{declaration, {listof, string}, foo, {cons, <<"2">>, {cons, <<"3">>, nil}}}]},
+    ?assertEqual(Expected, Result).
+
