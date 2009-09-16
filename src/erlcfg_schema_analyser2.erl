@@ -7,20 +7,20 @@
 % to type mapping which looks like:
 %
 % [
-%    {node1.intkey1, #validator{name=integer, 
-%                               test=fun is_integer/1}
+%    {node1.intkey1, {?ERLCFG_SCHEMA_NIL, #validator{name=integer, 
+%                               test=fun is_integer/1}}
 %    },
-%    {node1.stringkey1, #validator{name=string, 
-%                                  test=fun is_binary/1}
+%    {node1.stringkey1, {<<"defaultvalue">>, #validator{name=string, 
+%                                  test=fun is_binary/1}}
 %    },
-%    {node2.intkey2, #validator{name=integer, 
-%                               test=fun is_integer/1}
+%    {node2.intkey2, {5, #validator{name=integer, 
+%                               test=fun is_integer/1}}
 %    },
-%    {node2.stringkey2, #validator{name=string, 
-%                                  test=fun is_binary/1}
+%    {node2.stringkey2, {?ERLCFG_SCHEMA_NIL, #validator{name=string, 
+%                                  test=fun is_binary/1}}
 %    },
-%    {truefalse, #validator{name=boolean, 
-%                           test=fun is_boolean/1}
+%    {truefalse, {false, #validator{name=boolean, 
+%                           test=fun is_boolean/1}}
 %    }
 % ]
 

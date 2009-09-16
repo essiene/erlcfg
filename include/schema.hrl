@@ -1,3 +1,5 @@
+-define(ERLCFG_SCHEMA_NIL, '_erlcfg_nil').
+
 -record(listof, {type}).
 
 -record(typedef, {
