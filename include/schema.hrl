@@ -12,7 +12,8 @@
 
 -record(declaration, {
         type,
-        name}).
+        name,
+        default=?ERLCFG_SCHEMA_NIL}).
 
 -record(cons, {
         head,
