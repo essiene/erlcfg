@@ -19,7 +19,8 @@ item -> declaration : '$1'.
 typedef -> keyword_type atom '=' typedef_options ';' : {typedef, get_value('$2'), '$4'}.
 block -> atom '{' block_contents '}' : {block, get_value('$1'), '$3'}.
 block -> atom '{' '}' : {block, get_value('$1'), []}.
-declaration -> type_signature atom ';' : {declaration, '$1', get_value('$2')}.
+declaration -> type_signature atom ';' : {declaration, '$1', get_value('$2'), ?ERLCFG_SCHEMA_NIL}.
+declaration -> type_signature atom '=' data ';' : {declaration, '$1', get_value('$2'), '$4'}.
 
 block_contents -> block_data : ['$1'].
 block_contents -> block_data block_contents : ['$1' | '$2'].
