@@ -1,13 +1,52 @@
 -module(erlcfg_interp).
--export([eval/1, eval/2]).
+-export([interpret/1]).
+-export([eval/3, rhs/2]).
 -include("erlcfg.hrl").
 
 
-eval(Ast) ->
-    InterpState = #interp{node=erlcfg_node:new()},
-    eval(Ast, InterpState).
+interpret(AstList) ->
+    State = #interp{node=erlcfg_node:new()},
+    Scope = '',
+    interpret(AstList, Scope, State).
 
-eval(#get{address=Address}, #interp{node=Node}=State) ->
+interpret([], _Scope, State) ->
+    State;
+interpret([Head|Rest], Scope, State) ->
+    interpret(Head, Rest, Scope, State).
+
+interpret(Current, [], Scope, State) ->
+    eval(Current, Scope, State);
+interpret(Current, [Head|Rest], Scope, State0) ->
+    State1 = eval(Current, Scope, State0),
+    interpret(Head, Rest, Scope, State1).
+
+
+eval(#set{key=Key, value=Value}, Scope, #interp{}=State0) ->
+    State1 = rhs(Value, State0),
+
+    ScopedKey = node_addr:join([Scope, Key]),
+
+    case erlcfg_node:set(State1#interp.node, ScopedKey, State1#interp.value) of
+        {not_found, InvalidAddress} ->
+            throw({not_found, InvalidAddress});
+        NewNode ->
+            State1#interp{node=NewNode}
+    end;
+
+eval(#block{name=Name, children=Children}, Scope, #interp{node=Node}=State0) ->
+    ScopedName = node_addr:join([Scope, Name]),
+
+    case erlcfg_node:set(Node, ScopedName) of
+        {not_found, InvalidAddress} ->
+            throw({not_found, InvalidAddress});
+        NewNode ->
+            State1 = State0#interp{node=NewNode},
+            interpret(Children, ScopedName, State1)
+    end.
+
+
+
+rhs(#get{address=Address}, #interp{node=Node}=State) ->
     case erlcfg_node:get(Node, Address) of
         {value, Value} ->
             State#interp{value=Value};
@@ -15,51 +54,25 @@ eval(#get{address=Address}, #interp{node=Node}=State) ->
             throw({not_found, InvalidAddress})
     end;
 
-eval(#set{key=Key, value=Value, next=Next}, #interp{scope=Scope}=State) ->
-    StateAfterValueEval = eval(Value, State),
-
-    ScopedKey = node_addr:join([Scope, Key]),
-
-    case erlcfg_node:set(StateAfterValueEval#interp.node, ScopedKey, StateAfterValueEval#interp.value) of
-        {not_found, InvalidAddress} ->
-            throw({not_found, InvalidAddress});
-        NewNode ->
-            eval(Next, StateAfterValueEval#interp{node=NewNode})
-    end;
-
-eval(#block{name=Name, child=Child, next=Next}, #interp{node=Node, scope=Scope}=State) ->
-    ScopedName = node_addr:join([Scope, Name]),
-
-    case erlcfg_node:set(Node, ScopedName) of
-        {not_found, InvalidAddress} ->
-            throw({not_found, InvalidAddress});
-        NewNode ->
-            EvalState = eval(Child, State#interp{node=NewNode, scope=ScopedName}),
-            eval(Next, EvalState#interp{scope=Scope})
-    end;
-
-eval(nil, State) ->
-    State;
-
-% an empty list
-eval([], State) ->
+rhs(#list{data=nil}, State) ->
     State#interp{value=[]};
 
-eval(Data, State) when is_record(Data, cons) ->
+rhs(#list{data=Data}, State) ->
     State#interp{value=cons(Data, State)};
 
-eval(Data, State) when is_binary(Data) ->
-    State#interp{value=binary_to_list(Data)};
-
-eval(Data, State) when is_number(Data); is_atom(Data) ->
+rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data) ->
     State#interp{value=Data};
 
-eval(Unknown, _State) -> % TODO: capture current scope?
-    throw({illegal_command, Unknown}).
+rhs(Data, State) when is_binary(Data) ->
+    State#interp{value=binary_to_list(Data)};
 
-cons(#cons{head=Head, tail=[]}, State) ->
-    NewState = eval(Head, State),
+rhs(Unknown, _State) -> % TODO: capture current scope?
+    throw({unsupported_value_type, Unknown}).
+
+
+cons(#cons{head=Head, tail=nil}, State) ->
+    NewState = rhs(Head, State),
     [NewState#interp.value];
 cons(#cons{head=Head, tail=Tail}, State) ->
-    NewState = eval(Head, State),
+    NewState = rhs(Head, State),
     [NewState#interp.value | cons(Tail, NewState)].
