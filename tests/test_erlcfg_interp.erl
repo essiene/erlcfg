@@ -3,70 +3,97 @@
 -include("erlcfg.hrl").
 
 
-eval_nil_test() ->
-    Expected = {interp, {c, '', []}, nil, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(nil)).
+interp_set_test()  ->
+    Expected = {interp, {c, '', [{d, foo, bar}]}, bar},
+    ?assertEqual(Expected, erlcfg_interp:interpret([#set{key=foo, value=bar}])),
+    ?assertEqual(Expected, erlcfg_interp:interpret([{set, foo, bar}])).
 
-eval_set_test()  ->
-    Expected = {interp, {c, '', [{d, foo, bar}]}, bar, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(#set{key=foo, value=bar, next=nil})),
-    ?assertEqual(Expected, erlcfg_interp:eval({set, foo, bar, nil})).
+interp_set_nested_get_test()  ->
+    AstList = [
+        {set, foo, bar}, 
+        {set, moo, {get, foo}}
+    ],
+    Expected = {interp, {c, '', [{d, foo, bar}, {d, moo, bar}]}, bar},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_set_nested_get_test()  ->
-    Ast = {set, foo, bar, {set, moo, {get, foo}, nil}},
-    Expected = {interp, {c, '', [{d, foo, bar}, {d, moo, bar}]}, bar, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_empty_block_test() ->
+    AstList = [{block, foo, []}],
+    Expected = {interp, {c, '', [{c, foo, []}]}, nil},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_block_test() ->
-    Ast = {block, foo, nil, nil},
-    Expected = {interp, {c, '', [{c, foo, []}]}, nil, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_non_empty_block_test() ->
+    AstList = [{block, foo, [
+                {set, foo, bar},
+                {set, bar, baz}
+            ]}],
+    Expected = {interp, {c, '', [{c, foo, [{d, foo, bar}, {d, bar, baz}]}]}, baz},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_nested_blocks_test() ->
-    Ast = {block, foo, {set, foo, bar, {block, foo1, {set, foo, bar, nil}, nil}}, {set, foo1, bar1, nil}},
-    Expected = {interp, {c, '', [{c, foo, [{d, foo, bar}, {c, foo1, [{d, foo, bar}]}]}, {d, foo1, bar1}]}, bar1, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_nested_blocks_test() ->
+    AstList = [
+        {block, foo, [
+                {set, foo, bar}, 
+                {block, foo1, [
+                        {set, foo, bar},
+                        {set, foo1, bar1}
+                ]}, 
+                {set, foo2, bar2}
+         ]}],
+    Expected = {interp, 
+        {c, '', [
+                {c, foo, [
+                        {d, foo, bar}, 
+                        {c, foo1, [
+                                {d, foo, bar},
+                                {d, foo1, bar1}
+                        ]},
+                        {d, foo2, bar2}
+                ]}
+        ]}, 
+        bar2},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_integer_test() ->
-    Ast = {set, foo, 5, nil},
-    Expected = {interp, {c, '', [{d, foo, 5}]}, 5, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_integer_test() ->
+    AstList = [{set, foo, 5}],
+    Expected = {interp, {c, '', [{d, foo, 5}]}, 5},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_float_test() ->
-    Ast = {set, foo, -5.5e-15, nil},
-    Expected = {interp, {c, '', [{d, foo, -5.5e-15}]}, -5.5e-15, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_float_test() ->
+    AstList = [{set, foo, -5.5e-15}],
+    Expected = {interp, {c, '', [{d, foo, -5.5e-15}]}, -5.5e-15},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_atom_test() ->
-    Ast = {set, foo, a95, nil},
-    Expected = {interp, {c, '', [{d, foo, a95}]}, a95, ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_atom_test() ->
+    AstList = [{set, foo, a95}],
+    Expected = {interp, {c, '', [{d, foo, a95}]}, a95},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_string_test() ->
-    Ast = {set, foo, <<"A String">>, nil},
-    Expected = {interp, {c, '', [{d, foo, "A String"}]}, "A String", ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_string_test() ->
+    AstList = [{set, foo, <<"A String">>}],
+    Expected = {interp, {c, '', [{d, foo, "A String"}]}, "A String"},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_cons_empty_test() ->
-    Ast = [],
-    Expected = {interp, {c, '', []}, [], ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_cons_empty_test() ->
+    AstList = [],
+    Expected = {interp, {c, '', []}, nil},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_cons_single_item_test() ->
-    Ast = {cons, 1, []},
-    Expected = {interp, {c, '', []}, [1], ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_cons_single_item_test() ->
+    AstList = [{set, foo, {list, {cons, 1, nil}}}],
+    Expected = {interp, {c, '', [{d, foo, [1]}]}, [1]},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_cons_multiple_items_test() ->
-    Ast = {cons, 1, {cons, 2, {cons, 3, []}}},
-    Expected = {interp, {c, '', []}, [1,2,3], ''},
-    ?assertEqual(Expected, erlcfg_interp:eval(Ast)).
+interp_cons_multiple_items_test() ->
+    AstList = [{set, foo, {list, {cons, 1, {cons, 2, {cons, 3, nil}}}}}],
+    Expected = {interp, {c, '', [{d, foo, [1,2,3]}]}, [1,2,3]},
+    ?assertEqual(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_set_no_parent_test()  ->
-    Ast = {set, foo, bar, {set, foo.foo.bar, bar, nil}},
+interp_set_no_parent_test()  ->
+    AstList = [{set, foo, bar}, 
+        {set, foo.foo.bar, bar}],
     Expected = {not_found, foo.foo},
-    ?assertThrow(Expected, erlcfg_interp:eval(Ast)).
+    ?assertThrow(Expected, erlcfg_interp:interpret(AstList)).
 
-eval_illegal_command_test()  ->
-    Expected = {illegal_command, {read, moo, noop}},
-    ?assertThrow(Expected, erlcfg_interp:eval({read, moo, noop})).
+interp_illegal_command_test()  ->
+    Expected = {unsupported_value_type, {read, moo, noop}},
+    ?assertThrow(Expected, erlcfg_interp:interpret([{set, foo, {read, moo, noop}}])).
