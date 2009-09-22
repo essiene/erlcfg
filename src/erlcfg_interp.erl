@@ -7,7 +7,7 @@
 interpret(AstList) ->
     State = #interp{node=erlcfg_node:new()},
     Scope = '',
-    interpret(AstList, Scope, State).
+    {ok, interpret(AstList, Scope, State)}.
 
 interpret([], _Scope, State) ->
     State;

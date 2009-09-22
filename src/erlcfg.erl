@@ -13,5 +13,5 @@ new(FileName) ->
     String = binary_to_list(Binary),
     {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
     {ok, Ast} = erlcfg_parser:parse(TokenList),
-    InterpState = erlcfg_interp:eval(Ast),
+    {ok, InterpState} = erlcfg_interp:interpret(Ast),
     {ok, erlcfg_data:new(InterpState#interp.node)}.
