@@ -31,10 +31,10 @@ data -> string     : get_value('$1').
 data -> bool       : get_value('$1').
 data -> variable   : {get, get_value('$1')}.
 
-list -> '(' elements ')' : '$2'.
+list -> '(' elements ')' : {list, '$2'}.
 elements -> element ',' elements    : {cons, '$1', '$3'}.
-elements -> element     : {cons, '$1', []}.
-elements -> '$empty' : [].
+elements -> element     : {cons, '$1', nil}.
+elements -> '$empty' : nil.
 element -> value : '$1'.
 
 Erlang code.

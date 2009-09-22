@@ -9,6 +9,9 @@
 -record(get, {
         address}).
 
+-record(list, {
+        data}).
+
 -record(cons, {
         head,
         tail=nil}).
