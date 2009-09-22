@@ -1,12 +1,10 @@
 -record(block, {
         name,
-        child,
-        next=nil}).
+        children}).
 
 -record(set, {
         key,
-        value,
-        next=nil}).
+        value}).
 
 -record(get, {
         address}).
