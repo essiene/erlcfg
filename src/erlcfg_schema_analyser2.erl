@@ -101,4 +101,3 @@ cons(#cons{head=Head, tail=nil}, Accm) ->
 cons(#cons{head=Head, tail=Tail}, Accm) ->
     Accm0 = [Head|Accm],
     cons(Tail, Accm0).
-

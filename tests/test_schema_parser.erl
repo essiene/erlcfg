@@ -164,4 +164,3 @@ parse_list_of_int_declaration_with_default_test() ->
     Result = erlcfg_schema_parser:parse(Tokens),
     Expected = {ok, [{declaration, {listof, string}, foo, {cons, <<"2">>, {cons, <<"3">>, nil}}}]},
     ?assertEqual(Expected, Result).
-
