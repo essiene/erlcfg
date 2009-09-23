@@ -5,7 +5,7 @@
 parse_int_declaration_test() ->
     Tokens = [{datatype, 1, int}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, int, foo, nil}]},
+    Expected = {ok, [{declaration, int, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 parse_int_declaration_with_default_test() ->
@@ -17,25 +17,25 @@ parse_int_declaration_with_default_test() ->
 parse_float_declaration_test() ->
     Tokens = [{datatype, 1, float}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, float, foo, nil}]},
+    Expected = {ok, [{declaration, float, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 parse_bool_declaration_test() ->
     Tokens = [{datatype, 1, bool}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, bool, foo, nil}]},
+    Expected = {ok, [{declaration, bool, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 parse_atom_declaration_test() ->
     Tokens = [{datatype, 1, atom}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, atom, foo, nil}]},
+    Expected = {ok, [{declaration, atom, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 parse_string_declaration_test() ->
     Tokens = [{datatype, 1, string}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, string, foo, nil}]},
+    Expected = {ok, [{declaration, string, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 parse_typedef_test() ->
@@ -75,8 +75,8 @@ parse_block_with_declarations_test() ->
 
     Result = erlcfg_schema_parser:parse(Tokens),
     Expected = {ok, [{block, block1, [
-                    {declaration, string, foo, nil},
-                    {declaration, int, bar, nil}
+                    {declaration, string, foo, ?ERLCFG_SCHEMA_NIL},
+                    {declaration, int, bar, ?ERLCFG_SCHEMA_NIL}
                 ]}]},
     ?assertEqual(Expected, Result).
 
@@ -96,11 +96,11 @@ parse_block_with_nested_block_test() ->
 
     Result = erlcfg_schema_parser:parse(Tokens),
     Expected = {ok, [{block, block1, [
-                    {declaration, string, foo, nil},
-                    {declaration, int, bar, nil},
+                    {declaration, string, foo, ?ERLCFG_SCHEMA_NIL},
+                    {declaration, int, bar, ?ERLCFG_SCHEMA_NIL},
                     {block, block1, [
-                        {declaration, string, foo, nil},
-                        {declaration, int, bar, nil}
+                        {declaration, string, foo, ?ERLCFG_SCHEMA_NIL},
+                        {declaration, int, bar, ?ERLCFG_SCHEMA_NIL}
                     ]}
                 ]}]},
     ?assertEqual(Expected, Result).
@@ -140,11 +140,11 @@ parse_complex_with_typedefs_and_blocks_test() ->
     Expected = {ok, [
             {typedef, newtype1, {cons, foo, {cons, bar, nil}}},
             {block, block1, [
-                    {declaration, string, foo, nil},
-                    {declaration, int, bar, nil},
+                    {declaration, string, foo, ?ERLCFG_SCHEMA_NIL},
+                    {declaration, int, bar, ?ERLCFG_SCHEMA_NIL},
                     {block, block1, [
-                        {declaration, string, foo, nil},
-                        {declaration, int, bar, nil}
+                        {declaration, string, foo, ?ERLCFG_SCHEMA_NIL},
+                        {declaration, int, bar, ?ERLCFG_SCHEMA_NIL}
                     ]}
              ]},
             {typedef, newtype2, {cons, moo, {cons, meh, nil}}}
@@ -154,7 +154,7 @@ parse_complex_with_typedefs_and_blocks_test() ->
 parse_list_of_int_declaration_test() ->
     Tokens = [{'[', 1}, {datatype, 1, string}, {']', 1}, {atom, 1, foo}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
-    Expected = {ok, [{declaration, {listof, string}, foo, nil}]},
+    Expected = {ok, [{declaration, {listof, string}, foo, ?ERLCFG_SCHEMA_NIL}]},
     ?assertEqual(Expected, Result).
 
 
