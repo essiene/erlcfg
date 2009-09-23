@@ -28,7 +28,7 @@
 analyse([], _Types) ->
     [];
 analyse([Head|Rest], Types) ->
-    analyse(Head, Rest, [], [], Types).
+    analyse(Head, Rest, '', [], Types).
 
 analyse(Current, [], Scope, Accm, Types) ->
     process(Current, Scope, Accm, Types);
@@ -37,10 +37,10 @@ analyse(Current, [Head|Rest], Scope, Accm, Types) ->
     analyse(Head, Rest, Scope, Accm0, Types).
 
 process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types) ->
-    Scope0 = [Name | Scope],
+    Scope0 = node_addr:join([Scope, Name]),
     analyse(Head, Rest, Scope0, Accm, Types);
 process(#declaration{type=#listof{type=DeclaredType}, name=Name, default=Default}, Scope, Accm, Types) ->
-    Addr = build_node_addr(Name, Scope),
+    Addr = node_addr:join([Scope, Name]),
     ok = check_is_already_defined(Addr, Accm),
     {ok, Validator} = check_has_known_type(DeclaredType, Types),
 
@@ -55,18 +55,13 @@ process(#declaration{type=#listof{type=DeclaredType}, name=Name, default=Default
 
     [{Addr, {Default0, Validator0}}|Accm];
 process(#declaration{type=DeclaredType, name=Name, default=Default}, Scope, Accm, Types) ->
-    Addr = build_node_addr(Name, Scope),
+    Addr = node_addr:join([Scope, Name]),
     ok = check_is_already_defined(Addr, Accm),
     {ok, Validator} = check_has_known_type(DeclaredType, Types),
     {ok, Default0} = check_typeof_default(Default, Validator),
     [{Addr, {Default0, Validator}}|Accm];
 process(_Other, _Scope, Accm, _Types) ->
     Accm.
-
-
-build_node_addr(Name, Scope) ->
-    Scope0 = lists:reverse([Name|Scope]),
-    node_addr:join(Scope0).
 
 check_is_already_defined(Addr, Accm) ->
     case proplists:get_value(Addr, Accm) of
