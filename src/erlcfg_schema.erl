@@ -42,11 +42,11 @@ validate([{Key, {Default0, #validator{}=Validator}}|Rest], Config) ->
     Test = Validator#validator.test,
     case Test(Value) of
         false ->
-            {error, {
+            {error, [
                         {node, Key}, 
                         {expected_type, Validator#validator.type}, 
                         {value, Value}
-                    }
+                    ]
             };
         true ->
             %Config:set(Key, Value),
