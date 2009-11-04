@@ -29,16 +29,22 @@ validate(nil, Config) ->
 validate([], Config) ->
     {ok, Config};
 validate([{Key, {Default0, #validator{}=Validator}}|Rest], Config) ->
-    % Default values for strings will come in as a regular erlang
-    % string a.k.a list, but we need it to be in binary to conform
-    % with the rest of the system else the typechecking will bork.
-    Default = case is_list(Default0) of
-        true ->
-            list_to_binary(Default0);
-        false ->
-            Default0
-    end,
+    Default = ensure_raw_default(Default0),
     Value = Config:raw_get(Key, Default),
+
+    case Value of
+       ?ERLCFG_SCHEMA_NIL ->
+            {error, [ 
+                {node, Key},
+                {expected_type, Validator#validator.type},
+                {value, {error, not_given}}
+                ]
+            };
+       _NonNull ->
+            validate_type(Key, Value, Validator, Rest, Config)
+    end.
+
+validate_type(Key, Value, Validator, Rest, Config) ->
     Test = Validator#validator.test,
     case Test(Value) of
         false ->
@@ -52,3 +58,12 @@ validate([{Key, {Default0, #validator{}=Validator}}|Rest], Config) ->
             %Config:set(Key, Value),
             validate(Rest, Config)
     end.
+
+
+% Default values for strings will come in as a regular erlang
+% string a.k.a list, but we need it to be in binary to conform
+% with the rest of the system else the typechecking will bork.
+ensure_raw_default(Value) when is_list(Value) -> 
+    list_to_binary(Value);
+ensure_raw_default(Value) -> 
+    Value.
