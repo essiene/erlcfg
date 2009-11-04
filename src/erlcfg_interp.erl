@@ -21,6 +21,12 @@ interpret(Current, [Head|Rest], Scope, State0) ->
     interpret(Head, Rest, Scope, State1).
 
 
+eval(#directive{name=schema, value=SchemaFile}, _Scope, #interp{schema_table=SchemaTable0}=State) ->
+    SchemaFile1 = binary_to_list(SchemaFile),
+    {ok, SchemaTable1} = erlcfg_schema:new(SchemaFile1),
+    SchemaTable2 = erlcfg_schema:combine(SchemaTable0, SchemaTable1),
+    State#interp{schema_table=SchemaTable2};
+
 eval(#set{key=Key, value=Value}, Scope, #interp{}=State0) ->
     State1 = rhs(Value, State0),
 
