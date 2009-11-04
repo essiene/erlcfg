@@ -18,4 +18,10 @@
 
 -record(interp, {
         node,
-        value=nil}).
+        value=nil,
+        schema_table=nil}).
+        
+
+-record(directive, {
+        name,
+        value}).
