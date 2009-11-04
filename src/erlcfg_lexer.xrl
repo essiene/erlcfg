@@ -55,6 +55,9 @@ Rules.
 \, :
     {token, {',', TokenLine}}.
 
+\@ :
+    {token, {'@', TokenLine}}.
+
 {WS}+ : 
     skip_token.
 

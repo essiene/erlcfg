@@ -1,13 +1,25 @@
 Nonterminals
-config items item assignment block key value data list elements element.
+config items item assignment block key value data list elements element
+directive directives directive_name directive_value.
 
 Terminals 
-integer float atom quoted_atom string bool variable '=' ';' '{' '}' '(' ')' ','.
+integer float atom quoted_atom string bool variable '=' ';' '{' '}' '(' ')' ',' '@'.
 
 Rootsymbol config.
 
 config -> '$empty' : [].
 config -> items : '$1'.
+config -> directives : '$1'.
+config -> directives items : lists:append(['$1', '$2']).
+
+directives -> directive : ['$1'].
+directives -> directive directives : ['$1' | '$2'].
+
+directive -> '@' directive_name '(' directive_value ')' ';' : {directive, '$2', '$4'}.
+
+directive_name -> atom : get_value('$1').
+
+directive_value -> data : '$1'.
 
 items -> item : ['$1'].
 items -> item items: ['$1' | '$2'].
