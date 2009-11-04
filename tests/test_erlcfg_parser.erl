@@ -56,6 +56,12 @@ parse_empty_list_assignment_test() ->
     Expected = {ok, [{set, foo, {list, nil}}]},
     ?assertEqual(Expected, Result).
 
+parse_single_directive_test() ->
+    Tokens = [{'@', 1}, {atom, 1, foo}, {'(', 1}, {atom, 1, 'path.schema'}, {')', 1}, {';', 1}],
+    Result = erlcfg_parser:parse(Tokens),
+    Expected = {ok, [{directive, foo, 'path.schema'}]},
+    ?assertEqual(Expected, Result).
+
 parse_single_value_list_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, {'(', 1}, {atom, 1, bar}, {')', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),

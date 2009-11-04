@@ -17,8 +17,35 @@ new_variable_test() ->
     ?assertEqual(1, Config:get(six_variable)),
     ?assertEqual(awesome@quoted.atom, Config:get(seven_variable)).
 
-nested_file_test() ->
-    {ok, Config} = erlcfg:new("full.conf"),
+unchecked_nested_file_test() ->
+    {ok, Config} = erlcfg:new("unchecked.conf"),
+    ?assertEqual("www.appserver.com", Config:get(common.appserver)),
+    ?assertEqual(5038, Config:get(common.port.ami)),
+    ?assertEqual(9119, Config:get(common.port.rest)),
+
+    ?assertEqual(["10.10.201.5", "192.168.10.41"], Config:get(general.listen)),
+    ?assertEqual(9119, Config:get(general.port)),
+    ?assertEqual(2, Config:get(general.wait.short)),
+    ?assertEqual(10, Config:get(general.wait.long)),
+
+    ?assertEqual("www.appserver.com", Config:get(ami.host)),
+    ?assertEqual(5038, Config:get(ami.port)),
+    ?assertEqual("user", Config:get(ami.username)),
+    ?assertEqual(5, Config:get(ami.secret)),
+
+    ?assertEqual(5, Config:get(callentry.rttl)),
+    ?assertEqual(60, Config:get(callentry.qttl)),
+    ?assertEqual(high, Config:get(callentry.requeue.priority)).
+
+checked_file_fail_test() ->
+    Expected = {error,[{node, 'ami.secret'}, 
+        {expected_type, string},
+        {value, 5}]},
+    ?assertEqual(Expected, erlcfg:new("unchecked.conf", true)).
+
+checked_file_pass_test() -> 
+    {ok, Config} = erlcfg:new("checked.conf", true),
+
     ?assertEqual("www.appserver.com", Config:get(common.appserver)),
     ?assertEqual(5038, Config:get(common.port.ami)),
     ?assertEqual(9119, Config:get(common.port.rest)),
@@ -36,3 +63,4 @@ nested_file_test() ->
     ?assertEqual(5, Config:get(callentry.rttl)),
     ?assertEqual(60, Config:get(callentry.qttl)),
     ?assertEqual(high, Config:get(callentry.requeue.priority)).
+
