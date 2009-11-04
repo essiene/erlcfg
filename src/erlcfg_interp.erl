@@ -60,11 +60,8 @@ rhs(#list{data=nil}, State) ->
 rhs(#list{data=Data}, State) ->
     State#interp{value=cons(Data, State)};
 
-rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data) ->
+rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data); is_binary(Data) ->
     State#interp{value=Data};
-
-rhs(Data, State) when is_binary(Data) ->
-    State#interp{value=binary_to_list(Data)};
 
 rhs(Unknown, _State) -> % TODO: capture current scope?
     throw({unsupported_value_type, Unknown}).

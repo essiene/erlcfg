@@ -35,7 +35,8 @@ OBJECTS=erlcfg_lexer \
 		erlcfg_schema_analyser1\
 		erlcfg_schema_analyser2\
 		erlcfg_data \
-		erlcfg
+		erlcfg \
+		erlcfg_schema
 
 APP=erlcfg
 
