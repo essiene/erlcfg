@@ -9,6 +9,14 @@ get_onelevel_single_test() ->
     Config = erlcfg_data:new(Data),
     ?assertEqual(5, Config:get(foo)).
 
+set_onelevel_single_test() ->
+    Data = {c, '', [
+        {d, foo, 5}
+    ]},
+    Config = erlcfg_data:new(Data),
+    Config1 = Config:set(foo, 10),
+    ?assertEqual(10, Config1:get(foo)).
+
 get_onelevel_dual_test() ->
     Data = {c, '', [
         {d, foo, 5}, 
@@ -18,6 +26,29 @@ get_onelevel_dual_test() ->
     ?assertEqual(5, Config:get(foo)),
     ?assertEqual(baz, Config:get(bar)),
     ?assertEqual({error, {not_found, far}}, Config:get(far)).
+
+set_onelevel_dual_test() ->
+    Data = {c, '', [
+        {d, foo, 5}, 
+        {d, bar, baz}
+    ]},
+    Config = erlcfg_data:new(Data),
+    Config1 = Config:set(foo, 10),
+    Config2 = Config1:set(bar, fiz),
+    Config3 = Config2:set(far, moo),
+    ?assertEqual(10, Config3:get(foo)),
+    ?assertEqual(fiz, Config3:get(bar)),
+    ?assertEqual(moo, Config3:get(far)),
+    ?assertEqual({error, {not_found, too}}, Config3:set(too.far, yes)).
+
+create_test() ->
+    Data = {c, '', [
+        {d, foo, 5}, 
+        {d, bar, baz}
+    ]},
+    Config = erlcfg_data:new(Data),
+    Config1 = Config:create(moo.foo.doo, fiz),
+    ?assertEqual(fiz, Config1:get(moo.foo.doo)).
 
 get_onelevel_multi_test() ->
     Data = {c, '', [
