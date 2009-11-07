@@ -26,6 +26,6 @@ callentry {
     int qttl;
 
     requeue {
-        Priority priority;
+        Priority priority = low;
     }
 }

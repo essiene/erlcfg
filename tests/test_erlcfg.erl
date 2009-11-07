@@ -62,5 +62,5 @@ checked_file_pass_test() ->
 
     ?assertEqual(5, Config:get(callentry.rttl)),
     ?assertEqual(60, Config:get(callentry.qttl)),
-    ?assertEqual(high, Config:get(callentry.requeue.priority)).
+    ?assertEqual(low, Config:get(callentry.requeue.priority)).
 
