@@ -1,4 +1,5 @@
 # Comment
+@schema("/path/to/schema"); #a schema directive
 
 common {
     appserver = "www.appserver.com";
@@ -49,4 +50,4 @@ callentry {
 #
 #
 # Eventually we should also be able to set:
-# Config:set(callentry.requeue.priority, high).
+# Config1 = Config:set(callentry.requeue.priority, high).
