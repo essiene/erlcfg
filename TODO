@@ -1,1 +1,4 @@
 - build archlinux PKGBUILD
+- If a schema is used, it will be nice to keep the schema around optionally
+  in memory, so that we can use it to perform checking during :set and :create
+  operations
