@@ -33,6 +33,8 @@ validate([{Key, {Default0, #validator{}=Validator}}|Rest], Config) ->
     Value = Config:raw_get(Key, Default),
 
     case Value of
+       {error, Reason} ->
+            {error, Reason};
        ?ERLCFG_SCHEMA_NIL ->
             {error, [ 
                 {node, Key},
@@ -55,8 +57,12 @@ validate_type(Key, Value, Validator, Rest, Config) ->
                     ]
             };
         true ->
-            %Config:set(Key, Value),
-            validate(Rest, Config)
+            case Config:create(Key, Value) of
+                {error, Reason} ->
+                    {error, Reason};
+                Config1 -> 
+                    validate(Rest, Config1)
+            end
     end.
 
 
