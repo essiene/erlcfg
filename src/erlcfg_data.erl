@@ -1,6 +1,8 @@
 -module(erlcfg_data, [Node]).
 -export([
         raw/0,
+        create/2,
+        set/2,
         get/1,
         get/2,
         raw_get/1,
@@ -13,6 +15,29 @@
 
 raw() ->
     Node.
+
+create(Key, Value) ->
+    create_node(Node, Key, Value).
+
+create_node(ANode, Key, Value) ->
+    case erlcfg_node:set(ANode, Key, Value) of
+        {not_found, MissingNode} ->
+            ANewNode = erlcfg_node:set(ANode, MissingNode),
+            create_node(ANewNode, Key, Value);
+        NewNode ->
+            erlcfg_data:new(NewNode)
+    end.
+            
+set(Key, Value) ->
+    case erlcfg_node:set(Node, Key, Value) of
+        {not_found, MissingNode} ->
+            {error, {not_found, MissingNode}};
+        {error, Reason} ->
+            {error, Reason};
+        NewNode ->
+            erlcfg_data:new(NewNode)
+    end.
+        
 
 raw_get(Key) ->
     case erlcfg_node:get(Node, Key) of
