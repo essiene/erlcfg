@@ -1,0 +1,9 @@
+{application, erlcfg,
+ [{description, "Config file format and library for Erlang"},
+  {vsn, git},
+  {modules, []},
+  {registered, []},
+  {env, []},
+  {applications, [kernel, stdlib]}
+ ]
+}.

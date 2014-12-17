@@ -6,7 +6,8 @@ INCLUDE_DIR=include
 SRC_DIR=src
 
 all: 
-	@cd src;make
+	rebar compile
+	#@cd src;make
 	@echo All Done
 
 test: all

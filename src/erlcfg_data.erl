@@ -35,6 +35,7 @@
 %% OF SUCH DAMAGE.
 %% 
 
+-include_lib("pmod_transform/include/pmod.hrl").
 -module(erlcfg_data, [Node]).
 -export([
         raw/0,
