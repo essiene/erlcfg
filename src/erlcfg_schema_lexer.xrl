@@ -67,13 +67,22 @@ type :
     {token, {atom, TokenLine, list_to_atom(TokenChars)}}.
 
 \$({LETTER}|_){ALPHANUM}*(\.({LETTER}|_){ALPHANUM}*)* : 
-    {token, {variable, TokenLine, list_to_atom(peell(TokenChars, TokenLen, 1))}}.
+    {token, {variable, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1, 0))}}.
+
+\$env\{({LETTER}|_){ALPHANUM}*\} :
+    {token, {env, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 5, 1))}}.
+
+\$\{({LETTER}|_){ALPHANUM}*\} :
+    {token, {macro, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 5, 1))}}.
+
+\$\{({LETTER}|_){ALPHANUM}*\} :
+    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2, 1))}}.
 
 '({ALPHANUM}|{PUNCT_ATOM})*' : 
-    {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
+    {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1, 1))}}.
 
 "({ALPHANUM}|{PUNCT_STRING})*" :
-    {token, {string, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 1))}}.
+    {token, {string, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 1, 1))}}.
 
 
 = :
@@ -111,8 +120,9 @@ type :
 
 Erlang code.
 
-peel(List, ListLen, Depth) ->
-    lists:sublist(List, Depth+1, ListLen - (Depth+1)).
-
-peell(List, ListLen, Depth) ->
-    lists:sublist(List, Depth+1, ListLen).
+peel(List, ListLen, StripH, StripT) when is_list(List) ->
+    lists:sublist(List, StripH+1, ListLen - (StripH+StripT));
+peel(Bin,  Len, StripH, StripT) when is_binary(Bin) ->
+    N = Len - (StripH+StripT),
+    <<_:StripH/binary, Value:N/binary, _/binary>> = Bin,
+    Value.

@@ -8,6 +8,25 @@ common {
         ami = 5038;
         rest = 9119;
     }
+
+    # Note that semicolons are optional:
+    data {
+        abc = 10
+
+        # Strings can be broken to several lines, just like in C++:
+        efg = "test1"
+              " or "
+              "test2"
+    }
+
+    # pairs can be separated by comma on the same line:
+    xxx = 100, yyy = 101
+
+    # Environment variables are retrived using $env{Name} notation:
+    home = $env{HOME}
+
+    # Macros can be used to be set at run-time:
+    my-key = $macro{MyKey}
 }
 
 general {
@@ -42,12 +61,15 @@ callentry {
 # Create new config object:
 #
 # Config = erlcfg:new(Filename).
-#
+# 
+# Optionally the function takes a map of macros:
+# Config = erlcfg:new(Filename, Validate, #{ 'MyKey' => "XYZ" })
+# 
 # Get config values, including nested values:
 #
-# Config:get(general.listen).
-# Config:get(ami.host, "localhost").
+# Config:get('general.listen').
+# Config:get('ami.host', "localhost").
 #
 #
 # Eventually we should also be able to set:
-# Config1 = Config:set(callentry.requeue.priority, high).
+# Config1 = Config:set('callentry.requeue.priority', high).

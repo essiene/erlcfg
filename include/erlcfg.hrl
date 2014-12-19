@@ -46,6 +46,9 @@
 -record(get, {
         address}).
 
+-record(macro, {name}).
+-record(env,   {name}).
+
 -record(list, {
         data}).
 
@@ -56,7 +59,8 @@
 -record(interp, {
         node,
         value=nil,
-        schema_table=nil}).
+        schema_table=nil,
+        macros=[]}).
         
 
 -record(directive, {

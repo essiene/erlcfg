@@ -58,47 +58,75 @@ combine(nil, Schema) ->
     Schema;
 combine(Schema, nil) ->
     Schema;
-combine(Schema1, Schema2) ->
-    lists:append([Schema1, Schema2]).
+combine(Schema1, Schema2) when is_list(Schema1), is_list(Schema2) ->
+    lists:append([Schema1, Schema2]);
+combine(Schema1, Schema2) when is_map(Schema1), is_map(Schema2) ->
+    maps:merge(Schema1, Schema2).
 
 validate(nil, Config) ->
     {ok, Config};
-validate([], Config) ->
-    {ok, Config};
-validate([{Key, {Default0, #validator{}=Validator}}|Rest], Config) ->
-    Default = ensure_raw_default(Default0),
-    Value = Config:raw_get(Key, Default),
-
-    case Value of
-       {error, Reason} ->
-            {error, Reason};
-       ?ERLCFG_SCHEMA_NIL ->
-            {error, [ 
-                {node, Key},
-                {expected_type, Validator#validator.type},
-                {value, {error, not_given}}
-                ]
-            };
-       _NonNull ->
-            validate_type(Key, Value, Validator, Rest, Config)
+validate(SchemaTable, {erlcfg_data, {c, '', Data}} = Config) ->
+    try
+        Res = validate2(SchemaTable, Config),
+        check_unique_and_undefined(Data, [], to_map(SchemaTable)),
+        Res
+    catch throw:Error ->
+        {error, Error}
     end.
 
-validate_type(Key, Value, Validator, Rest, Config) ->
+validate2(SchemaTable, Config) when is_list(SchemaTable) ->
+    lists:foldl(
+        fun(Key, Info, {ok, Cfg}) -> validate3(Key, Info, Cfg) end,
+        {ok, Config}, SchemaTable);
+
+validate2(SchemaTable, Config) when is_map(SchemaTable) ->
+    maps:fold(
+        fun(Key, Info, {ok, Cfg}) -> validate3(Key, Info, Cfg) end,
+        {ok, Config}, SchemaTable).
+
+validate3(Key, _D = #declaration{type=Tp, attrs=Attrs, validator=Val}, Config) ->
+    V = case Config:raw_get(Key) of
+        {error, _} ->
+            case ensure_raw_default(Tp, Attrs#attrs.default) of
+                ?ERLCFG_SCHEMA_NIL ->
+                    throw([ 
+                        {node, Key},
+                        {expected_type, Val#validator.type},
+                        {value, {error, required_value_no_default}}
+                        ]);
+                Val0 ->
+                    Val0
+            end;
+        Val1 ->
+            Val1
+    end,
+    if Tp =:= int; Tp =:= float ->
+        Mn = Attrs#attrs.min,
+        Mn =/= undefined andalso V < Mn andalso
+            throw({value_below_min, [{node, Key}, {min, Mn}, {value, V}]}),
+        Mx = Attrs#attrs.max,
+        Mx =/= undefined andalso V > Mx andalso
+            throw({value_above_max, [{node, Key}, {max, Mx}, {value, V}]});
+    true ->
+        ok
+    end,
+    validate_type(Key, V, Val, Config).
+
+validate_type(Key, Value, Validator, Config) ->
     Test = Validator#validator.test,
     case Test(Value) of
         false ->
-            {error, [
-                        {node, Key}, 
-                        {expected_type, Validator#validator.type}, 
-                        {value, Value}
-                    ]
-            };
+            throw([
+                    {node, Key}, 
+                    {expected_type, Validator#validator.type}, 
+                    {value, Value}
+                  ]);
         true ->
             case Config:create(Key, Value) of
                 {error, Reason} ->
-                    {error, Reason};
+                    throw(Reason);
                 Config1 -> 
-                    validate(Rest, Config1)
+                    {ok, Config1}
             end
     end.
 
@@ -106,7 +134,47 @@ validate_type(Key, Value, Validator, Rest, Config) ->
 % Default values for strings will come in as a regular erlang
 % string a.k.a list, but we need it to be in binary to conform
 % with the rest of the system else the typechecking will bork.
-ensure_raw_default(Value) when is_list(Value) -> 
+ensure_raw_default(string, Value) when is_list(Value) -> 
     list_to_binary(Value);
-ensure_raw_default(Value) -> 
+ensure_raw_default(_, Value) -> 
     Value.
+
+% Check that unique keys are indeed unique in Data, and also
+% check that there are no keys that are not present in the schema
+check_unique_and_undefined(Data, NameScope, Schema) when is_map(Schema) ->
+    Root = lists:reverse(NameScope),
+    check_valid(Data, Root, Schema).
+
+check_valid([], _Data, _Schema) ->
+    ok;
+check_valid([{c, Name, Children}|T], Root, Schema) ->
+    Option = append_root(Root, Name, list),
+    check_valid(Children, Option, Schema),
+    check_valid(T, Root, Schema);
+check_valid([{d, Name, _Value}|T],   Root, Schema) ->
+    Option = append_root(Root, Name, atom),
+    case maps:find(Option, Schema) of
+        {ok, #declaration{attrs = #attrs{unique = true}}} ->
+            % Find if there are any remaining keys with the same name:
+            [] =/= [I || I = {d, N, _} <- T, N =:= Name]
+                andalso throw({found_non_unique_key, Option});
+        {ok, #declaration{attrs = #attrs{unique = false}}} ->
+            ok;
+        error ->
+            throw({not_found, Option})
+    end,
+    check_valid(T, Root, Schema).
+
+append_root([],   Name, list) when is_atom(Name) -> atom_to_list(Name);
+append_root([],   Name, atom) when is_atom(Name) -> Name;
+append_root(Root, Name, list) when is_list(Root), is_atom(Name) ->
+    Root ++ [$. | atom_to_list(Name)];
+append_root(Root, Name, atom) when is_list(Root), is_atom(Name) ->
+    Key = Root ++ [$. | atom_to_list(Name)],
+    try   list_to_existing_atom(Key)
+    catch error:badarg -> throw({invalid_key, Key})
+    end.
+
+to_map(L) when is_list(L) -> maps:from_list(L);
+to_map(M) when is_map(M)  -> M.
+

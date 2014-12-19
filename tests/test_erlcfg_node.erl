@@ -233,12 +233,12 @@ if_node_found_ok_test() ->
                 ]
             }},
 
-    Result = erlcfg_node:if_node_found(Data, one.two, Fun),
+    Result = erlcfg_node:if_node_found(Data, 'one.two', Fun),
     ?assertEqual(Expected, Result),
 
     Expected1 = {boo, foo, {d, three, 123}}, 
 
-    Result1 = erlcfg_node:if_node_found(Data, one.two.three, ?MODULE, node_found_mfa, []),
+    Result1 = erlcfg_node:if_node_found(Data, 'one.two.three', ?MODULE, node_found_mfa, []),
     ?assertEqual(Expected1, Result1).
 
 
@@ -266,16 +266,16 @@ if_node_found_not_found_test() ->
             {boo, foo, Node}
     end,
 
-    Expected = {not_found, one.two.five},
-    Result = erlcfg_node:if_node_found(Data, one.two.five.six, Fun),
+    Expected = {not_found, 'one.two.five'},
+    Result = erlcfg_node:if_node_found(Data, 'one.two.five.six', Fun),
     ?assertEqual(Expected, Result),
 
-    Expected1 = {not_found, one.three.three.four},
-    Result1 = erlcfg_node:if_node_found(Data, one.three.three.four.five.six.seven, Fun),
+    Expected1 = {not_found, 'one.three.three.four'},
+    Result1 = erlcfg_node:if_node_found(Data, 'one.three.three.four.five.six.seven', Fun),
     ?assertEqual(Expected1, Result1),
 
     Expected2 = {not_found, three},
-    Result2 = erlcfg_node:if_node_found(Data, three.four.five, Fun),
+    Result2 = erlcfg_node:if_node_found(Data, 'three.four.five', Fun),
     ?assertEqual(Expected2, Result2).
 
 
@@ -301,15 +301,15 @@ get_test() ->
     ]},
 
     Expected = {value, 123},
-    Result = erlcfg_node:get(Data, one.two.three),
+    Result = erlcfg_node:get(Data, 'one.two.three'),
     ?assertEqual(Expected, Result),
 
     Expected1 = {value, void},
     Result1 = erlcfg_node:get(Data, two),
     ?assertEqual(Expected1, Result1),
 
-    Expected2 = {not_found, two.three},
-    Result2 = erlcfg_node:get(Data, two.three.four.five),
+    Expected2 = {not_found, 'two.three'},
+    Result2 = erlcfg_node:get(Data, 'two.three.four.five'),
     ?assertEqual(Expected2, Result2).
 
 set_test() ->
@@ -337,7 +337,7 @@ set_test() ->
         {d, two, void}
     ]},
 
-    D2 = erlcfg_node:set(Data1, one.two),
-    D3 = erlcfg_node:set(D2, one.two.three, 123),
-    Data2 = erlcfg_node:set(D3, one.two.four, 124),
+    D2 = erlcfg_node:set(Data1, 'one.two'),
+    D3 = erlcfg_node:set(D2,    'one.two.three', 123),
+    Data2 = erlcfg_node:set(D3, 'one.two.four', 124),
     ?assertEqual(Expected2, Data2).

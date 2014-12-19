@@ -61,7 +61,13 @@ Rules.
     {token, {atom, TokenLine, list_to_atom(TokenChars)}}.
 
 \$({LETTER}|_){ALPHANUM}*(\.({LETTER}|_){ALPHANUM}*)* : 
-    {token, {variable, TokenLine, list_to_atom(peell(TokenChars, TokenLen, 1))}}.
+    {token, {variable, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1, 0))}}.
+
+\$env\{({LETTER}|_){ALPHANUM}*\} : 
+    {token, {env, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 5))}}.
+
+\$\{({LETTER}|_){ALPHANUM}*\} : 
+    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2))}}.
 
 '({ALPHANUM}|{PUNCT_ATOM})*' : 
     {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
@@ -100,8 +106,8 @@ Rules.
 
 Erlang code.
 
-peel(List, ListLen, Depth) ->
-    lists:sublist(List, Depth+1, ListLen - (Depth+1)).
+peel(List, ListLen, StripH) ->
+    peel(List, ListLen, StripH, 1).
 
-peell(List, ListLen, Depth) ->
-    lists:sublist(List, Depth+1, ListLen).
+peel(List, ListLen, StripH, StripT) when is_list(List) ->
+    lists:sublist(List, StripH+1, ListLen - (StripH+StripT)).

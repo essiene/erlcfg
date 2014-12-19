@@ -39,7 +39,8 @@
 -export([
         new/0,
         new/1,
-        new/2
+        new/2,
+        new/3
     ]).
 -include("erlcfg.hrl").
 
@@ -47,18 +48,23 @@ new() ->
     {ok, erlcfg_data:new(erlcfg_node:new())}.
 
 new(FileName) ->
-    new(FileName, false).
+    new(FileName, false, []).
 
-new(FileName, ValidateSchema) ->
+new(FileName, ValidateSchema) when is_boolean(ValidateSchema) ->
+    new(FileName, ValidateSchema, []).
+
+new(FileName, ValidateSchema, Macros) when is_boolean(ValidateSchema), is_list(Macros) ->
+    MacrosMap = maps:from_list(Macros),
+    new(FileName, ValidateSchema, MacrosMap);
+new(FileName, ValidateSchema, Macros) when is_boolean(ValidateSchema), is_map(Macros) ->
     {ok, Binary} = file:read_file(FileName),
     String = binary_to_list(Binary),
     {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
     {ok, Ast} = erlcfg_parser:parse(TokenList),
-    {ok, InterpState} = erlcfg_interp:interpret(Ast),
-    Unvalidated = erlcfg_data:new(InterpState#interp.node),
-    case ValidateSchema of
-        false ->
-            {ok, Unvalidated};
-        true ->
-            erlcfg_schema:validate(InterpState#interp.schema_table, Unvalidated)
-    end.
+    {ok, #interp{schema_table=Schema, node=Node}} = erlcfg_interp:interpret(Ast, Macros),
+    validate(ValidateSchema, Schema, erlcfg_data:new(Node)).
+
+validate(false, _Schema, Unvalidated) ->
+    {ok, Unvalidated};
+validate(true,  Schema, Unvalidated) ->
+    erlcfg_schema:validate(Schema, Unvalidated).

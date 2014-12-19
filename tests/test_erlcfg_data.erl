@@ -76,7 +76,7 @@ set_onelevel_dual_test() ->
     ?assertEqual(10, Config3:get(foo)),
     ?assertEqual(fiz, Config3:get(bar)),
     ?assertEqual(moo, Config3:get(far)),
-    ?assertEqual({error, {not_found, too}}, Config3:set(too.far, yes)).
+    ?assertEqual({error, {not_found, too}}, Config3:set('too.far', yes)).
 
 create_test() ->
     Data = {c, '', [
@@ -84,8 +84,8 @@ create_test() ->
         {d, bar, baz}
     ]},
     Config = erlcfg_data:new(Data),
-    Config1 = Config:create(moo.foo.doo, fiz),
-    ?assertEqual(fiz, Config1:get(moo.foo.doo)).
+    Config1 = Config:create('moo.foo.doo', fiz),
+    ?assertEqual(fiz, Config1:get('moo.foo.doo')).
 
 get_onelevel_multi_test() ->
     Data = {c, '', [
@@ -108,7 +108,7 @@ get_default_value_test() ->
     Config = erlcfg_data:new(Data),
     ?assertEqual(5, Config:get(int)),
     ?assertEqual(baz, Config:get(atom, 10)),
-    ?assertEqual(10, Config:get(int.moo, 10)).
+    ?assertEqual(10, Config:get('int.moo', 10)).
 
 
 get_twolevels_test() ->
@@ -121,9 +121,9 @@ get_twolevels_test() ->
         }
     ]},
     Config = erlcfg_data:new(Data),
-    ?assertEqual(5, Config:get(foo.int)), 
-    ?assertEqual(5.0, Config:get(foo.float)),
-    ?assertEqual({error, {not_found, foo.bar}}, Config:get(foo.bar)).
+    ?assertEqual(5, Config:get('foo.int')), 
+    ?assertEqual(5.0, Config:get('foo.float')),
+    ?assertEqual({error, {not_found, 'foo.bar'}}, Config:get('foo.bar')).
 
 get_multi_level_nested_test() ->
     Data = {c, '', [
@@ -163,12 +163,12 @@ get_multi_level_nested_test() ->
 
     Config = erlcfg_data:new(Data),
 
-    ?assertEqual(11, Config:get(one.one)), 
-    ?assertEqual(12, Config:get(one.two)),
-    ?assertEqual(131, Config:get(one.three.one)),
-    ?assertEqual(132, Config:get(one.three.two)),
+    ?assertEqual(11,  Config:get('one.one')), 
+    ?assertEqual(12,  Config:get('one.two')),
+    ?assertEqual(131, Config:get('one.three.one')),
+    ?assertEqual(132, Config:get('one.three.two')),
 
-    ?assertEqual(211, Config:get(two.one.one)),
-    ?assertEqual(212, Config:get(two.one.two)),
-    ?assertEqual(221, Config:get(two.two.one)),
-    ?assertEqual(222, Config:get(two.two.two)).
+    ?assertEqual(211, Config:get('two.one.one')),
+    ?assertEqual(212, Config:get('two.one.two')),
+    ?assertEqual(221, Config:get('two.two.one')),
+    ?assertEqual(222, Config:get('two.two.two')).

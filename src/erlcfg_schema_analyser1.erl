@@ -83,9 +83,7 @@ analyse(Current, [], Types0) ->
 
 eval(#typedef{name=Name, options=OptionAst}, Types) ->
     Options = cons(OptionAst),
-    Fun = fun(Val) ->
-            lists:member(Val, Options)
-    end,
+    Fun = fun(Val) -> lists:member(Val, Options) end,
     TypeTest = #validator{type=Name, test=Fun},
     [{Name, TypeTest}|Types];
 eval(_Other, Types) ->

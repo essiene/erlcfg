@@ -36,13 +36,16 @@
 %% 
 
 -module(erlcfg_interp).
--export([interpret/1]).
+-export([interpret/1, interpret/2]).
 -export([eval/3, rhs/2]).
 -include("erlcfg.hrl").
 
 
 interpret(AstList) ->
-    State = #interp{node=erlcfg_node:new()},
+    interpret(AstList, []).
+
+interpret(AstList, Macros) ->
+    State = #interp{node=erlcfg_node:new(), macros=Macros},
     Scope = '',
     {ok, interpret(AstList, Scope, State)}.
 
@@ -95,6 +98,22 @@ rhs(#get{address=Address}, #interp{node=Node}=State) ->
             State#interp{value=Value};
         {not_found, InvalidAddress} ->
             throw({not_found, InvalidAddress})
+    end;
+
+rhs(#macro{name=Name}, #interp{macros=Map}=State) ->
+    case maps:find(Name, Map) of
+        {ok, Value} ->
+            State#interp{value=Value};
+        error ->
+            throw({macro_not_found, Name})
+    end;
+
+rhs(#env{name=Name}, State) ->
+    case os:getenv(Name) of
+        Value when is_list(Value) ->
+            State#interp{value = list_to_binary(Value)};
+        false ->
+            State#interp{value = <<>>}
     end;
 
 rhs(#list{data=nil}, State) ->
