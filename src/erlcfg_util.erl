@@ -36,30 +36,63 @@
 %% 
 -module(erlcfg_util).
 -author('saleyn@gmail.com').
+-on_load(init/0).
 
--export([init/0, strftime/2, strftime/3, strptime/2]).
+-export([strftime/2, strftime/3, strptime/2, pathftime/2, pathftime/3, strenv/1]).
 
 -define(LIBNAME, "erlcfg_nifs").
 
-init() ->
-    SoName = getdir(?LIBNAME),
-    erlang:load_nif(SoName, 0).
+%%------------------------------------------------------------------------------
+%% External functions
+%%------------------------------------------------------------------------------
 
+%% @doc Substitute formatted date/time in a string using C strftime() function.
 -spec strftime(Fmt :: string() | binary(), Now::erlang:timestamp()) ->
         string() | binary().
 strftime(Format, Now) ->
     strftime(Format, Now, utc).
 
+%% @doc Substitute formatted date/time in a string using C strftime() function.
 -spec strftime(Fmt :: string() | binary(), Now::erlang:timestamp(), utc | local) ->
         string() | binary().
 strftime(_Format, _Now, _Utc) ->
     throw({library_not_loaded, ?LIBNAME}).
 
+%% @doc Substitute formatted date/time in a path using C strftime() function.
+%% If the path begins with `"~"', it'll be replaces with the value of `${HOME}'.
+%% All environment variables in the path in the form `${VAR}' will be substituted
+%% with evaluated values.
+-spec pathftime(Fmt :: string() | binary(), Now::erlang:timestamp()) ->
+        string() | binary().
+pathftime(Format, Now) ->
+    pathftime(Format, Now, utc).
+
+%% @doc Substitute formatted date/time in a path using C strftime() function.
+-spec pathftime(Fmt :: string() | binary(), Now::erlang:timestamp(), utc | local) ->
+        string() | binary().
+pathftime(_Format, _Now, _Utc) ->
+    throw({library_not_loaded, ?LIBNAME}).
+
+%% @doc Substitute formatted date/time in a string using C strftime() function.
+%% All environment variables in the string in the form `${VAR}' will be substituted
+%% with evaluated values.
 -spec strptime(Input::string() | binary(), Fmt::string() | binary()) ->
         {Time::calendar:datetime(), Processed::integer()}.
 strptime(_Input, _Format) ->
     throw({library_not_loaded, ?LIBNAME}).
+
+-spec strenv(Input :: string() | binary()) -> string() | binary().
+strenv(Input) when is_list(Input); is_binary(Input) ->
+    throw({library_not_loaded, ?LIBNAME}).
     
+%%------------------------------------------------------------------------------
+%% Internal functions
+%%------------------------------------------------------------------------------
+
+init() ->
+    SoName = getdir(?LIBNAME),
+    erlang:load_nif(SoName, 0).
+
 getdir(LibName) ->
     case code:priv_dir(erlcfg) of
     {error, bad_name} ->

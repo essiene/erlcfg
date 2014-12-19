@@ -37,19 +37,23 @@
 
 Definitions.
 
-DIGIT = [0-9]
-LETTER = [A-Za-z]
-SYLLABLE_SEPERATOR = (_|-)
-ALPHANUM = ({LETTER}|{DIGIT}|{SYLLABLE_SEPERATOR})
-PUNCTUATION = ({SYLLABLE_SEPERATOR}|\~|\`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\+|\=|\{|\}|\[|\]|\:|\;|\||\\|\<|\>|\,|\.|\?|\/|\s|\n|\t)
-PUNCT_ATOM = ({PUNCTUATION}|"|\\')
+DIGIT        = [0-9]
+LETTER       = [A-Za-z]
+INT_SUFFIX   = [GMKgmk]
+SYLLABLE_SEP = (_|-)
+ALPHANUM     = ({LETTER}|{DIGIT}|{SYLLABLE_SEP})
+PUNCTUATION  = ({SYLLABLE_SEP}|\~|\`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\+|\=|\{|\}|\[|\]|\:|\;|\||\\|\<|\>|\,|\.|\?|\/|\s|\n|\t)
+PUNCT_ATOM   = ({PUNCTUATION}|"|\\')
 PUNCT_STRING = ({PUNCTUATION}|'|\\")
-WS = ([\000-\s]|#.*)
+WS           = ([\000-\s]|#.*)
 
 
 Rules.
 (\+|-)?{DIGIT}+ : 
     {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
+
+(\+|-)?{DIGIT}+{INT_SUFFIX} : 
+    {token, {integer, TokenLine, to_integer(TokenChars, TokenLen)}}.
 
 (\+|-)?{DIGIT}+(\.{DIGIT}+([e|E](\+|-)?{DIGIT}+)?)? : 
     {token, {float, TokenLine, list_to_float(TokenChars)}}.
@@ -66,23 +70,23 @@ type :
 ({LETTER}|_){ALPHANUM}* : 
     {token, {atom, TokenLine, list_to_atom(TokenChars)}}.
 
+{UPPER}{ALPHANUM}* : 
+    {token, {var, TokenLine, TokenChars}}.
+
+\$\(({LETTER}|_){ALPHANUM}*\) :
+    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2))}}.
+
+\$\{({LETTER}|_){ALPHANUM}*\} :
+    {token, {env, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 2))}}.
+
 \$({LETTER}|_){ALPHANUM}*(\.({LETTER}|_){ALPHANUM}*)* : 
     {token, {variable, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1, 0))}}.
 
-\$env\{({LETTER}|_){ALPHANUM}*\} :
-    {token, {env, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 5, 1))}}.
-
-\$\{({LETTER}|_){ALPHANUM}*\} :
-    {token, {macro, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 5, 1))}}.
-
-\$\{({LETTER}|_){ALPHANUM}*\} :
-    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2, 1))}}.
-
 '({ALPHANUM}|{PUNCT_ATOM})*' : 
-    {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1, 1))}}.
+    {token, {quoted_atom, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 1))}}.
 
 "({ALPHANUM}|{PUNCT_STRING})*" :
-    {token, {string, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 1, 1))}}.
+    {token, {string, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 1))}}.
 
 
 = :
@@ -120,9 +124,20 @@ type :
 
 Erlang code.
 
+peel(List, ListLen, StripH) ->
+    peel(List, ListLen, StripH, 1).
+
 peel(List, ListLen, StripH, StripT) when is_list(List) ->
-    lists:sublist(List, StripH+1, ListLen - (StripH+StripT));
-peel(Bin,  Len, StripH, StripT) when is_binary(Bin) ->
-    N = Len - (StripH+StripT),
-    <<_:StripH/binary, Value:N/binary, _/binary>> = Bin,
-    Value.
+    lists:sublist(List, StripH+1, ListLen - (StripH+StripT)).
+
+to_integer(List, Len) ->
+    {L, [Sfx]} = lists:split(Len-1, List),
+    I = list_to_integer(L),
+    case Sfx of
+    $G -> I * 1073741824;
+    $M -> I * 1048576;
+    $K -> I * 1024;
+    $g -> I * 1000000000;
+    $m -> I * 1000000;
+    $k -> I * 1000
+    end.

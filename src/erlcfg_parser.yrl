@@ -37,10 +37,10 @@
 
 Nonterminals
 config items item assignments assignment block key value data strings list
-elements element directive directives directive_name directive_value.
+elements element directive directives directive_name directive_value fun_args.
 
 Terminals 
-integer float atom quoted_atom string bool variable macro env '=' ';' '{' '}' '(' ')' ',' '@'.
+integer float atom quoted_atom string bool var variable macro env '=' ';' '{' '}' '(' ')' ',' '@'.
 
 Rootsymbol config.
 
@@ -84,15 +84,23 @@ data -> atom       : get_value('$1').
 data -> quoted_atom: get_value('$1').
 data -> strings    : '$1'.
 data -> bool       : get_value('$1').
-data -> variable   : {get,   get_value('$1')}.
 data -> macro      : {macro, get_value('$1')}.
 data -> env        : {env,   get_value('$1')}.
+data -> variable '{' fun_args '}' :
+                     {func, list_to_atom(atom_to_list(get_value('$1'))),
+                            element(1, '$3'), element(2, '$3')}.
+data -> variable   : {get,   get_value('$1')}.
 
-list -> '(' elements ')'         : {list, '$2'}.
-elements -> element ',' elements : {cons, '$1', '$3'}.
-elements -> element              : {cons, '$1', nil}.
-elements -> '$empty'             : nil.
-element  -> value                : '$1'.
+fun_args  -> var                    : {list_to_atom(get_value('$1')), []}.
+fun_args  -> string                 : {get_value('$1'), []}.
+fun_args  -> var ',' assignments    : {list_to_atom(get_value('$1')), '$3'}.
+fun_args  -> string ',' assignments : {get_value('$1'), '$3'}.
+
+list -> '(' elements ')'            : {list, '$2'}.
+elements -> element ',' elements    : {cons, '$1', '$3'}.
+elements -> element                 : {cons, '$1', nil}.
+elements -> '$empty'                : nil.
+element  -> value                   : '$1'.
 
 strings  -> string : get_value('$1').
 strings  -> string strings : <<(get_value('$1'))/binary, ('$2')/binary>>.

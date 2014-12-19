@@ -5,7 +5,7 @@ common {
     appserver = "www.appserver.com";
 
     port {
-        ami = 5038;
+        ami  = 5038;
         rest = 9119;
     }
 
@@ -22,11 +22,21 @@ common {
     # pairs can be separated by comma on the same line:
     xxx = 100, yyy = 101
 
-    # Environment variables are retrived using $env{Name} notation:
-    home = $env{HOME}
+    # Environment variables are retrived using ${Name} notation:
+    home = ${HOME}
+    
+    # Environment variables can be nested (e.g. NEW_HOME="HOME", then
+    # ${${NEW_HOME}} is the value of $HOME):
+    new-home = ${${NEW_HOME}}
 
-    # Macros can be used to be set at run-time:
-    my-key = $macro{MyKey}
+    # Macros use $(MacroName) notation, they can be passed at run-time:
+    my-key = $(MyKey)
+
+    # Strings can contain environment variables that can be concatenated
+    key = "user:" "${USER}"
+
+    # The following functions are supported (using strftime() C notation):
+    date = $date{"Today is: %Y-%m-%d"}
 }
 
 general {
@@ -63,7 +73,7 @@ callentry {
 # Config = erlcfg:new(Filename).
 # 
 # Optionally the function takes a map of macros:
-# Config = erlcfg:new(Filename, Validate, #{ 'MyKey' => "XYZ" })
+# Config = erlcfg:new(Filename, Validate, #{ 'MyKey' => <<"XYZ">> })
 # 
 # Get config values, including nested values:
 #

@@ -31,6 +31,8 @@ ami {
     string xxx  = "";
     string username;
     string secret;
+    string date = "";
+    string path = ${HOME};
 }
 
 callentry {

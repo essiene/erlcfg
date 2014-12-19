@@ -116,14 +116,32 @@ rhs(#env{name=Name}, State) ->
             State#interp{value = <<>>}
     end;
 
+rhs(#func{name='env',  arg=Env}, State) when is_atom(Env) ->
+    rhs(#env{name=atom_to_list(Env)}, State);
+rhs(#func{name='env',  arg=Env}, State) when is_list(Env) ->
+    rhs(#env{name=Env}, State);
+rhs(#func{name='date', arg=Date, opts=Opts}, State) when is_binary(Date) ->
+    Utc = proplists:get_value(tz,  Opts, 'local'), % 'local' | 'utc'
+    Now = to_now(proplists:get_value(now, Opts), Utc),
+    State#interp{value = erlcfg_util:strftime(Date, Now, Utc)};
+rhs(#func{name='path', arg=Path, opts=Opts}, State) when is_binary(Path) ->
+    Utc = proplists:get_value(tz, Opts, 'local'), % 'local' | 'utc'
+    Now = to_now(proplists:get_value(now, Opts), Utc),
+    State#interp{value = erlcfg_util:pathftime(Path, Now, Utc)};
+rhs(#func{name=Name, arg=Arg, opts=Opts}, _State) ->
+    throw({unsupported_function, Name, [{arg=Arg, opts=Opts}]});
+
 rhs(#list{data=nil}, State) ->
     State#interp{value=[]};
 
 rhs(#list{data=Data}, State) ->
     State#interp{value=cons(Data, State)};
 
-rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data); is_binary(Data) ->
+rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data) ->
     State#interp{value=Data};
+
+rhs(Data, State) when is_binary(Data) ->
+    State#interp{value=erlcfg_util:strenv(Data)};
 
 rhs(Unknown, _State) -> % TODO: capture current scope?
     throw({unsupported_value_type, Unknown}).
@@ -135,3 +153,9 @@ cons(#cons{head=Head, tail=nil}, State) ->
 cons(#cons{head=Head, tail=Tail}, State) ->
     NewState = rhs(Head, State),
     [NewState#interp.value | cons(Tail, NewState)].
+
+to_now(undefined, _) -> now();
+to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 10 ->
+    erlcfg_util:strptime(Format, <<"%Y-%m-%d">>, Utc);
+to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 19 ->
+    erlcfg_util:strptime(Format, <<"%Y-%m-%d %H:%M:%S">>, Utc).

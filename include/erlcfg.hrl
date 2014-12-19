@@ -35,34 +35,19 @@
 %% OF SUCH DAMAGE.
 %% 
 
--record(block, {
-        name,
-        children}).
-
--record(set, {
-        key,
-        value}).
-
--record(get, {
-        address}).
-
+-record(block, {name, children}).
+-record(set,   {key,  value}).
+-record(get,   {address}).
 -record(macro, {name}).
 -record(env,   {name}).
-
--record(list, {
-        data}).
-
--record(cons, {
-        head,
-        tail=nil}).
+-record(func,  {name, arg, opts}).
+-record(list,  {data}).
+-record(cons,  {head, tail=nil}).
 
 -record(interp, {
         node,
         value=nil,
         schema_table=nil,
         macros=[]}).
-        
 
--record(directive, {
-        name,
-        value}).
+-record(directive, {name, value}).
