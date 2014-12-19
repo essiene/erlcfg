@@ -1,7 +1,11 @@
 ebin
 *.beam
+c_src/erlcfg_util.o
 src/*_lexer.erl
 src/*_parser.erl
+.rebar
+deps
+priv
 diff
 commit
 erl_crash.dump

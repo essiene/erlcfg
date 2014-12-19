@@ -17,7 +17,7 @@ test: all
 clean:
 	@cd src;make clean
 	@cd tests;make clean
-	@rm -rf ebin
+	@rm -rf ebin priv
 	@rm -f erl_crash.dump
 	@rm -f *.tar.gz
 	@rm -rf $(NAME)-$(VERSION)
