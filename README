@@ -5,8 +5,12 @@ common {
     appserver = "www.appserver.com";
 
     port {
+        # Valid integer suffixes:
+        # 'k' = 1000x, 'm' = 1000000x,   'g' = 1000000000x
+        # 'K' = 1024x, 'M' = 1024*1024x, 'G' = 1024*1024*1024x
+
+        rest = 1K;
         ami  = 5038;
-        rest = 9119;
     }
 
     # Note that semicolons are optional:
@@ -37,6 +41,7 @@ common {
 
     # The following functions are supported (using strftime() C notation):
     date = $date{"Today is: %Y-%m-%d"}
+    path = $path{"${HOME}/log/mylog.%Y-%m-%d.log"}
 }
 
 general {

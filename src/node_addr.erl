@@ -71,13 +71,7 @@ join([H | _Rest]=NodeAddrList) when is_list(NodeAddrList), is_atom(H) ->
 
 split(NodeAddr) when is_atom(NodeAddr) ->
     StrAddr = atom_to_list(NodeAddr),
-    StrList = string:tokens(StrAddr, "."),
-
-    StrList2AtomList = fun (Item) -> 
-            list_to_atom(Item)
-    end,
-
-    lists:map(StrList2AtomList, StrList).
+    [list_to_atom(I) || I <- string:tokens(StrAddr, ".")].
 
 
 emancipate('') ->

@@ -44,6 +44,10 @@
     ]).
 -include("erlcfg.hrl").
 
+-type config() :: {erlcfg_data, tuple()}.
+
+-export_type([config/0]).
+
 new() ->
     {ok, erlcfg_data:new(erlcfg_node:new())}.
 
@@ -53,16 +57,18 @@ new(FileName) ->
 new(FileName, ValidateSchema) when is_boolean(ValidateSchema) ->
     new(FileName, ValidateSchema, []).
 
-new(FileName, ValidateSchema, Macros) when is_boolean(ValidateSchema), is_list(Macros) ->
+new(FileName, Validate, Macros) when is_boolean(Validate), is_list(Macros) ->
     MacrosMap = maps:from_list(Macros),
-    new(FileName, ValidateSchema, MacrosMap);
-new(FileName, ValidateSchema, Macros) when is_boolean(ValidateSchema), is_map(Macros) ->
+    new(FileName, Validate, MacrosMap);
+new(FileName, Validate, Macros) when is_boolean(Validate), is_map(Macros) ->
     {ok, Binary} = file:read_file(FileName),
-    String = binary_to_list(Binary),
+    new(Binary, Validate, Macros);
+new(CfgData, Validate, Macros) when is_binary(CfgData), is_boolean(Validate), is_map(Macros) ->
+    String = binary_to_list(CfgData),
     {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
     {ok, Ast} = erlcfg_parser:parse(TokenList),
     {ok, #interp{schema_table=Schema, node=Node}} = erlcfg_interp:interpret(Ast, Macros),
-    validate(ValidateSchema, Schema, erlcfg_data:new(Node)).
+    validate(Validate, Schema, erlcfg_data:new(Node)).
 
 validate(false, _Schema, Unvalidated) ->
     {ok, Unvalidated};
