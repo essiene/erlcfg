@@ -133,9 +133,12 @@ data(Key) ->
     [{K,V} || {d,K,V} <- List].
 
 data(Key, Default) when is_list(Default) ->
-    Def = {erlcfg_data, {c, '', Default}},
-    {erlcfg_data, {c, '', List}} = raw_get(Key, Def),
-    [{K,V} || {d,K,V} <- List].
+    try
+        {erlcfg_data, {c, '', List}} = raw_get(Key),
+        [{K,V} || {d,K,V} <- List]
+    catch _:_ ->
+        Default
+    end.
 
 children() ->
     {c, '', List} = Node,
