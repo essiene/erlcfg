@@ -47,7 +47,13 @@
         raw_get/2,
         get_config/1,
         ensure_get/1,
-        prepare/1
+        prepare/1,
+        keys/0,
+        keys/1,
+        data/0,
+        data/1,
+        children/0,
+        children/1
     ]).
 
 
@@ -108,6 +114,30 @@ ensure_get(Key) ->
         Value ->
             THIS:prepare(Value)
     end.
+
+keys() ->
+    {c, '', List} = Node,
+    [K || {_,K,_} <- List].
+
+keys(Key) ->
+    {erlcfg_data, {c, '', List}} = raw_get(Key),
+    [K || {_,K,_} <- List].
+
+data() ->
+    {c, '', List} = Node,
+    [{K,V} || {d,K,V} <- List].
+
+data(Key) ->
+    {erlcfg_data, {c, '', List}} = raw_get(Key),
+    [{K,V} || {d,K,V} <- List].
+
+children() ->
+    {c, '', List} = Node,
+    [K || {c,K,_} <- List].
+
+children(Key) ->
+    {erlcfg_data, {c, '', List}} = raw_get(Key),
+    [K || {c,K,_} <- List].
 
 prepare([{c, _K, _V} | _Rest]=Value) ->
     {erlcfg_data, {c, '', Value}};
