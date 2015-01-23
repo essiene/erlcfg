@@ -52,6 +52,7 @@
         keys/1,
         data/0,
         data/1,
+        data/2,
         children/0,
         children/1
     ]).
@@ -129,6 +130,11 @@ data() ->
 
 data(Key) ->
     {erlcfg_data, {c, '', List}} = raw_get(Key),
+    [{K,V} || {d,K,V} <- List].
+
+data(Key, Default) when is_list(Default) ->
+    Def = {erlcfg_data, {c, '', Default}},
+    {erlcfg_data, {c, '', List}} = raw_get(Key, Def),
     [{K,V} || {d,K,V} <- List].
 
 children() ->
