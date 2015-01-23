@@ -40,7 +40,9 @@
         new/0,
         new/1,
         new/2,
-        new/3
+        new/3,
+        join_paths/1,
+        join_paths/2
     ]).
 -include("erlcfg.hrl").
 
@@ -57,10 +59,10 @@ new(FileName) ->
 new(FileName, ValidateSchema) when is_boolean(ValidateSchema) ->
     new(FileName, ValidateSchema, []).
 
-new(FileName, Validate, Macros) when is_boolean(Validate), is_list(Macros) ->
+new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_list(Macros) ->
     MacrosMap = maps:from_list(Macros),
     new(FileName, Validate, MacrosMap);
-new(FileName, Validate, Macros) when is_boolean(Validate), is_map(Macros) ->
+new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_map(Macros) ->
     {ok, Binary} = file:read_file(FileName),
     new(Binary, Validate, Macros);
 new(CfgData, Validate, Macros) when is_binary(CfgData), is_boolean(Validate), is_map(Macros) ->
@@ -74,3 +76,9 @@ validate(false, _Schema, Unvalidated) ->
     {ok, Unvalidated};
 validate(true,  Schema, Unvalidated) ->
     erlcfg_schema:validate(Schema, Unvalidated).
+
+join_paths(Top, Child) when is_atom(Top), is_atom(Child) ->
+    join_paths([Top, Child]).
+
+join_paths(List) when is_list(List) ->
+    erlcfg_node_addr:join(List).

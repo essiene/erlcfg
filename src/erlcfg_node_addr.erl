@@ -35,7 +35,7 @@
 %% OF SUCH DAMAGE.
 %% 
 
--module(node_addr).
+-module(erlcfg_node_addr).
 -export([
         basename/1,
         parent/1,
@@ -60,13 +60,8 @@ join([]) ->
 join(['', Single]) when is_atom(Single) ->
     Single;
 join([H | _Rest]=NodeAddrList) when is_list(NodeAddrList), is_atom(H) ->
-    AtomList2StrList = fun (Item) ->
-            atom_to_list(Item)
-    end,
-
-    StrList = lists:map(AtomList2StrList, NodeAddrList),
-    StrAddr = string:join(StrList, "."),
-    list_to_atom(StrAddr).
+    S = string:join([atom_to_list(A) || A <- NodeAddrList], "."),
+    list_to_atom(S).
 
 
 split(NodeAddr) when is_atom(NodeAddr) ->

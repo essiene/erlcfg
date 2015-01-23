@@ -62,11 +62,11 @@ new() ->
     {c, '', []}.
 
 set(IData, Address, Value) when is_atom(Address) ->
-    {ParentAddress, Key} = node_addr:emancipate(Address),
+    {ParentAddress, Key} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key, Value]).
 
 set(IData, Address) when is_atom(Address) ->
-    {ParentAddress, Key} = node_addr:emancipate(Address),
+    {ParentAddress, Key} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key]).
 
 walk_tree_set_node(Node, _IData, '', Key, Value) ->
@@ -75,7 +75,7 @@ walk_tree_set_node(Node, _IData, '', Key, Value) ->
 
 walk_tree_set_node(Node, IData, Address, Key, Value) -> 
     {c, _NodeName, _Container=NewValue} = node_write(Node, Key, Value), 
-    {ParentAddress, NewKey} = node_addr:emancipate(Address),
+    {ParentAddress, NewKey} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
 walk_tree_set_node(Node, _IData, '', Key) ->
@@ -83,7 +83,7 @@ walk_tree_set_node(Node, _IData, '', Key) ->
 
 walk_tree_set_node(Node, IData, Address, Key) -> 
     {c, _NodeName, _Container=NewValue} = node_write(Node, Key), 
-    {ParentAddress, NewKey} = node_addr:emancipate(Address),
+    {ParentAddress, NewKey} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
 get(IData, Address) when is_atom(Address) ->
@@ -128,11 +128,11 @@ node_read({_Type, _NodeName, Value}) ->
 
 
 node_find(IData, Addr) when is_atom(Addr) ->
-    AddrList = node_addr:split(Addr),
+    AddrList = erlcfg_node_addr:split(Addr),
 
     case node_find(AddrList, [], IData) of
         {not_found, ErrorAddrList} ->
-            {not_found, node_addr:join(ErrorAddrList)};
+            {not_found, erlcfg_node_addr:join(ErrorAddrList)};
         Node -> 
             Node
     end.

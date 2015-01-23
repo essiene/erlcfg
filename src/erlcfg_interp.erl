@@ -70,7 +70,7 @@ eval(#directive{name=schema, value=SchemaFile}, _Scope, #interp{schema_table=Sch
 eval(#set{key=Key, value=Value}, Scope, #interp{}=State0) ->
     State1 = rhs(Value, State0),
 
-    ScopedKey = node_addr:join([Scope, Key]),
+    ScopedKey = erlcfg_node_addr:join([Scope, Key]),
 
     case erlcfg_node:set(State1#interp.node, ScopedKey, State1#interp.value) of
         {not_found, InvalidAddress} ->
@@ -80,7 +80,7 @@ eval(#set{key=Key, value=Value}, Scope, #interp{}=State0) ->
     end;
 
 eval(#block{name=Name, children=Children}, Scope, #interp{node=Node}=State0) ->
-    ScopedName = node_addr:join([Scope, Name]),
+    ScopedName = erlcfg_node_addr:join([Scope, Name]),
 
     case erlcfg_node:set(Node, ScopedName) of
         {not_found, InvalidAddress} ->

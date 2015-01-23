@@ -85,10 +85,10 @@ analyse(Current, [Head|Rest], Scope, Accm, Types, Macros) ->
     analyse(Head, Rest, Scope, Accm0, Types, Macros).
 
 process(#block{name=Name,child=[Head|Rest]}, Scope, Accm, Types, Macros) ->
-    Scope0 = node_addr:join([Scope, Name]),
+    Scope0 = erlcfg_node_addr:join([Scope, Name]),
     analyse(Head, Rest, Scope0, Accm, Types, Macros);
 process(D = #declaration{type=#listof{type=DeclType}, name=Name, attrs=Attrs}, Scope, Accm, Types, Macros) ->
-    Addr = node_addr:join([Scope, Name]),
+    Addr = erlcfg_node_addr:join([Scope, Name]),
     ok   = check_is_already_defined(Addr, Accm),
     {ok, Validator} = check_has_known_type(DeclType, Types),
 
@@ -102,7 +102,7 @@ process(D = #declaration{type=#listof{type=DeclType}, name=Name, attrs=Attrs}, S
     D1   = D#declaration{attrs = to_attrs(DeclType, Name, Attrs, Val, Macros), validator=Val},
     [{Addr, D1}|Accm];
 process(D = #declaration{type=DeclType, name=Name, attrs=Attrs}, Scope, Accm, Types, Macros) ->
-    Addr = node_addr:join([Scope, Name]),
+    Addr = erlcfg_node_addr:join([Scope, Name]),
     ok   = check_is_already_defined(Addr, Accm),
     {ok, Val} = check_has_known_type(DeclType, Types),
     D1   = D#declaration{attrs = to_attrs(DeclType, Name, Attrs, Val, Macros), validator=Val},
