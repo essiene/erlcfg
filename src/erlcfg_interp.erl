@@ -154,7 +154,7 @@ cons(#cons{head=Head, tail=Tail}, State) ->
     NewState = rhs(Head, State),
     [NewState#interp.value | cons(Tail, NewState)].
 
-to_now(undefined, _) -> now();
+to_now(undefined, _) -> erlang:timestamp();
 to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 10 ->
     erlcfg_util:strptime(Format, <<"%Y-%m-%d">>, Utc);
 to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 19 ->
