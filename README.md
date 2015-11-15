@@ -3,6 +3,7 @@
 This project is designed to parse hierarchical configuration files.
 
 This fork (Serge Aleynikov) adds the following features:
+
 1. Environment variable substitution
 2. Macro substitution
 3. Integer suffixes ('k', 'm', 'g', 'K', 'M', 'G')
