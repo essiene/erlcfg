@@ -1,3 +1,19 @@
+## ErlCfg - configuration file parser ##
+
+This project is designed to parse hierarchical configuration files.
+
+This fork (Serge Aleynikov) adds the following features:
+1. Environment variable substitution
+2. Macro substitution
+3. Integer suffixes ('k', 'm', 'g', 'K', 'M', 'G')
+4. Date and Path functions ($date{}, $path{})
+5. Multi-line C-like string concatenation
+6. Comma-separation of key-value pairs on the same line
+7. Optional semi-column delimiter.
+
+## Sample Config ##
+
+```
 # Comment
 @schema("/path/to/schema"); #a schema directive
 
@@ -88,3 +104,4 @@ callentry {
 #
 # Eventually we should also be able to set:
 # Config1 = Config:set('callentry.requeue.priority', high).
+```
