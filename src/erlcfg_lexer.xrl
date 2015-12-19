@@ -68,8 +68,8 @@ Rules.
 {UPPER}{ALPHANUM}* : 
     {token, {var, TokenLine, TokenChars}}.
 
-\$\(({LETTER}|_){ALPHANUM}*\) : 
-    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2))}}.
+\{\{({LETTER}|_){ALPHANUM}*\}\} : 
+    {token, {macro, TokenLine, list_to_atom(peel(TokenChars, TokenLen, 2, 2))}}.
 
 \$\{({LETTER}|_){ALPHANUM}*\} : 
     {token, {env, TokenLine, list_to_binary(peel(TokenChars, TokenLen, 2))}}.

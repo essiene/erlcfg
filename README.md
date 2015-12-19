@@ -2,10 +2,10 @@
 
 This project is designed to parse hierarchical configuration files.
 
-This fork (Serge Aleynikov) adds the following features:
+This fork (by Serge Aleynikov) adds the following features:
 
 1. Environment variable substitution
-2. Macro substitution
+2. Macro substitution (macros are defined using "mustashe" notation: {{macro}})
 3. Integer suffixes ('k', 'm', 'g', 'K', 'M', 'G')
 4. Date and Path functions ($date{}, $path{})
 5. Multi-line C-like string concatenation
@@ -50,8 +50,9 @@ common {
     # ${${NEW_HOME}} is the value of $HOME):
     new-home = ${${NEW_HOME}}
 
-    # Macros use $(MacroName) notation, they can be passed at run-time:
-    my-key = $(MyKey)
+    # Macros use {{MacroName}} notation, they can be passed at run-time
+    # as a map:
+    my-key = {{MyKey}}
 
     # Strings can contain environment variables that can be concatenated
     key = "user:" "${USER}"
