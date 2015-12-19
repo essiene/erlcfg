@@ -15,11 +15,9 @@ test: all
 	@echo Tests Done
 
 clean:
-	@cd src;make clean
-	@cd tests;make clean
-	@rm -rf ebin priv
-	@rm -f erl_crash.dump
-	@rm -f *.tar.gz
+	@make -C src clean --no-print-directory
+	@make -C tests clean --no-print-directory
+	@rm -rf ebin priv .eunit .rebar erl_crash.dump *.tar.gz
 	@rm -rf $(NAME)-$(VERSION)
 
 install: all
