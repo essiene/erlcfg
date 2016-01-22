@@ -74,22 +74,23 @@ assignments -> assignment ',' assignments : ['$1' | '$3'].
 % ';' or ',' is an optional separator
 assignment -> key '=' value : {set, '$1', '$3'}.
 
-key   -> atom      : get_value('$1').
-value -> data      : '$1'.
-value -> list      : '$1'.
+key   -> atom        : get_value('$1').
+key   -> quoted_atom : get_value('$1').
+value -> data        : '$1'.
+value -> list        : '$1'.
 
-data -> integer    : get_value('$1').
-data -> float      : get_value('$1').
-data -> atom       : get_value('$1').
-data -> quoted_atom: get_value('$1').
-data -> strings    : '$1'.
-data -> bool       : get_value('$1').
-data -> macro      : {macro, get_value('$1')}.
-data -> env        : {env,   get_value('$1')}.
+data -> integer      : get_value('$1').
+data -> float        : get_value('$1').
+data -> atom         : get_value('$1').
+data -> quoted_atom  : get_value('$1').
+data -> strings      : '$1'.
+data -> bool         : get_value('$1').
+data -> macro        : {macro, get_value('$1')}.
+data -> env          : {env,   get_value('$1')}.
 data -> variable '{' fun_args '}' :
-                     {func, list_to_atom(atom_to_list(get_value('$1'))),
-                            element(1, '$3'), element(2, '$3')}.
-data -> variable   : {get,   get_value('$1')}.
+                       {func, list_to_atom(atom_to_list(get_value('$1'))),
+                              element(1, '$3'), element(2, '$3')}.
+data -> variable     : {get,   get_value('$1')}.
 
 fun_args  -> var                    : {list_to_atom(get_value('$1')), []}.
 fun_args  -> string                 : {get_value('$1'), []}.
