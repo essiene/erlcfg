@@ -45,8 +45,9 @@ interpret(AstList) ->
     interpret(AstList, []).
 
 interpret(AstList, Macros) ->
-    State = #interp{node=erlcfg_node:new(), macros=Macros},
-    Scope = '',
+    {ok,Re} = re:compile(<<"\\{\\{([^}]+)\\}\\}">>, [ungreedy]),
+    State   = #interp{node=erlcfg_node:new(), macros=Macros, macro_re=Re},
+    Scope   = '',
     {ok, interpret(AstList, Scope, State)}.
 
 interpret([], _Scope, State) ->
@@ -140,12 +141,29 @@ rhs(#list{data=Data}, State) ->
 rhs(Data, State) when is_number(Data); is_atom(Data); is_boolean(Data) ->
     State#interp{value=Data};
 
-rhs(Data, State) when is_binary(Data) ->
-    State#interp{value=erlcfg_util:strenv(Data)};
+rhs(Data, #interp{macros=Map, macro_re=Re} = State) when is_binary(Data) ->
+    Data0 = erlcfg_util:strenv(Data),
+    Data1 = replace_macros(Data0, Re, Map),
+    State#interp{value=Data1};
 
 rhs(Unknown, _State) -> % TODO: capture current scope?
     throw({unsupported_value_type, Unknown}).
 
+replace_macros(Bin, Re, Map) ->
+    case re:run(Bin, Re, [global, {capture, all, binary}]) of
+    {match, L} ->
+        lists:foldl(fun([MacroFull, MacroName], Val) ->
+            try
+                Macro = binary_to_existing_atom(MacroName, latin1),
+                V     = maps:get(Macro, Map),
+                re:replace(Val, MacroFull, to_bin(V), [global,{return,binary}])
+            catch _:_ ->
+                throw({undefined_macro, {MacroFull, Val}})
+            end
+        end, Bin, L);
+    _ ->
+        Bin
+    end.
 
 cons(#cons{head=Head, tail=nil}, State) ->
     NewState = rhs(Head, State),
@@ -159,3 +177,9 @@ to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 10 ->
     erlcfg_util:strptime(Format, <<"%Y-%m-%d">>, Utc);
 to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 19 ->
     erlcfg_util:strptime(Format, <<"%Y-%m-%d %H:%M:%S">>, Utc).
+
+to_bin(B) when is_binary(B)  -> B;
+to_bin(B) when is_list(B)    -> list_to_binary(B);
+to_bin(B) when is_integer(B) -> integer_to_binary(B);
+to_bin(B) when is_float(B)   -> float_to_binary(B);
+to_bin(B)                    -> throw({cannot_convert_to_binary, B}).

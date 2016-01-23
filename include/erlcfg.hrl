@@ -48,6 +48,7 @@
         node,
         value=nil,
         schema_table=nil,
+        macro_re,
         macros=[]}).
 
 -record(directive, {name, value}).

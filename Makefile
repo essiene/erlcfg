@@ -7,7 +7,6 @@ SRC_DIR=src
 
 all: 
 	rebar compile
-	#@cd src;make
 	@echo All Done
 
 test: all
