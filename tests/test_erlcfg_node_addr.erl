@@ -40,25 +40,34 @@
 
 
 basename_test() ->
-    ?assertEqual(baz, erlcfg_node_addr:basename('foo.bar.baz')),
-    ?assertEqual(bar, erlcfg_node_addr:basename('foo.bar')),
-    ?assertEqual(foo, erlcfg_node_addr:basename(foo)).
+    ?assertEqual(baz,     erlcfg_node_addr:basename('foo.bar.baz')),
+    ?assertEqual(bar,     erlcfg_node_addr:basename('foo.bar')),
+    ?assertEqual(foo,     erlcfg_node_addr:basename(foo)),
+    ?assertEqual(baz,     erlcfg_node_addr:basename([foo,bar,baz])),
+    ?assertEqual(bar,     erlcfg_node_addr:basename([foo,bar])),
+    ?assertEqual(foo,     erlcfg_node_addr:basename([foo])).
 
 parent_test() ->
     ?assertEqual('foo.bar', erlcfg_node_addr:parent('foo.bar.baz')),
-    ?assertEqual(foo, erlcfg_node_addr:parent('foo.bar')),
-    ?assertEqual('', erlcfg_node_addr:parent(foo)).
+    ?assertEqual(foo,       erlcfg_node_addr:parent('foo.bar')),
+    ?assertEqual('',        erlcfg_node_addr:parent(foo)),
+    ?assertEqual([foo,bar], erlcfg_node_addr:parent([foo,bar,baz])),
+    ?assertEqual([foo],     erlcfg_node_addr:parent([foo,bar])),
+    ?assertEqual([],        erlcfg_node_addr:parent([foo])).
 
 join_test() ->
-    ?assertEqual('', erlcfg_node_addr:join([])),
-    ?assertEqual(foo, erlcfg_node_addr:join([foo])),
-    ?assertEqual(foo, erlcfg_node_addr:join(['', foo])),
-    ?assertEqual('foo.bar', erlcfg_node_addr:join([foo, bar])),
+    ?assertEqual('',            erlcfg_node_addr:join([])),
+    ?assertEqual(foo,           erlcfg_node_addr:join([foo])),
+    ?assertEqual(foo,           erlcfg_node_addr:join(['', foo])),
+    ?assertEqual('foo.bar',     erlcfg_node_addr:join([foo, bar])),
     ?assertEqual('foo.bar.baz', erlcfg_node_addr:join([foo, bar, baz])).
 
 
 split_test() ->
-    ?assertEqual([], erlcfg_node_addr:split('')),
-    ?assertEqual([foo], erlcfg_node_addr:split(foo)),
-    ?assertEqual([foo, bar], erlcfg_node_addr:split('foo.bar')),
-    ?assertEqual([foo, bar, baz], erlcfg_node_addr:split('foo.bar.baz')).
+    ?assertEqual([],            erlcfg_node_addr:split('')),
+    ?assertEqual([],            erlcfg_node_addr:split([])),
+    ?assertEqual([foo],         erlcfg_node_addr:split(foo)),
+    ?assertEqual([foo],         erlcfg_node_addr:split([foo])),
+    ?assertEqual([foo,bar],     erlcfg_node_addr:split('foo.bar')),
+    ?assertEqual([foo,bar,baz], erlcfg_node_addr:split('foo.bar.baz')),
+    ?assertEqual([foo,bar,baz], erlcfg_node_addr:split([foo,bar,baz])).

@@ -61,11 +61,11 @@
 new() ->
     {c, '', []}.
 
-set(IData, Address, Value) when is_atom(Address) ->
+set(IData, Address, Value) when is_atom(Address); is_list(Address) ->
     {ParentAddress, Key} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key, Value]).
 
-set(IData, Address) when is_atom(Address) ->
+set(IData, Address) when is_atom(Address); is_list(Address) ->
     {ParentAddress, Key} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, Key]).
 
@@ -86,10 +86,8 @@ walk_tree_set_node(Node, IData, Address, Key) ->
     {ParentAddress, NewKey} = erlcfg_node_addr:emancipate(Address),
     if_node_found(IData, ParentAddress, ?MODULE, walk_tree_set_node, [IData, ParentAddress, NewKey, NewValue]).
 
-get(IData, Address) when is_atom(Address) ->
-    Fun = fun(Node) ->
-            node_read(Node)
-    end,
+get(IData, Address) when is_atom(Address); is_list(Address) ->
+    Fun = fun(Node) -> node_read(Node) end,
     if_node_found(IData, Address, Fun).
 
 node_write({c, _ParentName, _Container}=ParentNode, Key, [Node | _Rest]=Value) when is_tuple(Node) ->
@@ -127,7 +125,7 @@ node_read({_Type, _NodeName, Value}) ->
 
 
 
-node_find(IData, Addr) when is_atom(Addr) ->
+node_find(IData, Addr) when is_atom(Addr); is_list(Addr) ->
     AddrList = erlcfg_node_addr:split(Addr),
 
     case node_find(AddrList, [], IData) of
