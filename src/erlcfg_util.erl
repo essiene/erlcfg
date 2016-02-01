@@ -70,28 +70,34 @@ pathftime(Format, Now) ->
 %% @doc Substitute formatted date/time in a path using C strftime() function.
 -spec pathftime(Fmt :: string() | binary(), Now::erlang:timestamp(), utc | local) ->
         string() | binary().
-pathftime(_Format, _Now, _Utc) ->
-    throw({library_not_loaded, ?LIBNAME}).
+pathftime(Format, _Now, _Utc) ->
+    check(Format).
 
 %% @doc Substitute formatted date/time in a string using C strftime() function.
 %% All environment variables in the string in the form `${VAR}' will be substituted
 %% with evaluated values.
 -spec strptime(Input::string() | binary(), Fmt::string() | binary()) ->
         {Time::calendar:datetime(), Processed::integer()}.
-strptime(_Input, _Format) ->
-    throw({library_not_loaded, ?LIBNAME}).
+strptime(Input, _Format) ->
+    check(Input).
 
 -spec strenv(Input :: string() | binary()) -> string() | binary().
 strenv(Input) when is_list(Input); is_binary(Input) ->
-    throw({library_not_loaded, ?LIBNAME}).
-    
+    check(Input).
+
+   
 %%------------------------------------------------------------------------------
 %% Internal functions
 %%------------------------------------------------------------------------------
 
 init() ->
     SoName = getdir(?LIBNAME),
-    erlang:load_nif(SoName, 0).
+    case os:type() of
+    {win32,nt} ->
+        ok;
+    _ ->
+        erlang:load_nif(SoName, 0)
+    end.
 
 getdir(LibName) ->
     case code:priv_dir(erlcfg) of
@@ -105,3 +111,10 @@ getdir(LibName) ->
     Dir ->
         filename:join(Dir, LibName)
     end.
+
+check(S) ->
+    case os:type() of
+    {win32,nt} -> S;
+    _          -> throw({library_not_loaded, ?LIBNAME})
+    end.
+ 
