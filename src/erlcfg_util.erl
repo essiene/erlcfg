@@ -55,8 +55,8 @@ strftime(Format, Now) ->
 %% @doc Substitute formatted date/time in a string using C strftime() function.
 -spec strftime(Fmt :: string() | binary(), Now::erlang:timestamp(), utc | local) ->
         string() | binary().
-strftime(_Format, _Now, _Utc) ->
-    throw({library_not_loaded, ?LIBNAME}).
+strftime(Format, _Now, _Utc) ->
+    check(Format).
 
 %% @doc Substitute formatted date/time in a path using C strftime() function.
 %% If the path begins with `"~"', it'll be replaces with the value of `${HOME}'.
