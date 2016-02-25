@@ -165,6 +165,8 @@ prepare([{c, _K, _V} | _Rest]=Value) ->
     {erlcfg_data, {c, '', Value}};
 prepare([{d, _K, _V} | _Rest]=Value) ->
     {erlcfg_data, {c, '', Value}};
+prepare({c, '', _Value} = T) ->
+    {erlcfg_data, T};
 prepare(Value) ->
     Value.
 
