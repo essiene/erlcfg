@@ -45,6 +45,7 @@
         get/2,
         raw_get/1,
         raw_get/2,
+        split/1,
         get_config/1,
         ensure_get/1,
         prepare/1,
@@ -114,6 +115,18 @@ ensure_get(Key) ->
             throw(Reason);
         Value ->
             THIS:prepare(Value)
+    end.
+
+%% @doc Split a subtree from the configuration tree.
+%% This function preserves the tree under the basename of `Key'.
+split(Key) ->
+    case THIS:get(Key) of
+        {error, Reason} ->
+            throw(Reason);
+        {erlcfg_data, Value} ->
+            K = erlcfg_node_addr:basename(Key),
+            V = erlcfg_node:new(Value, K),
+            THIS:prepare(V)
     end.
 
 keys() ->

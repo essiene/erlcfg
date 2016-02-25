@@ -180,6 +180,7 @@ to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 19 ->
 
 to_bin(B) when is_binary(B)  -> B;
 to_bin(B) when is_list(B)    -> list_to_binary(B);
+to_bin(B) when is_atom(B)    -> atom_to_binary(B, latin1);
 to_bin(B) when is_integer(B) -> integer_to_binary(B);
 to_bin(B) when is_float(B)   -> float_to_binary(B);
 to_bin(B)                    -> throw({cannot_convert_to_binary, B}).

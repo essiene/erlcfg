@@ -38,6 +38,7 @@
 -module(erlcfg_node).
 -export([
         new/0,
+        new/2,
         get/2,
         set/2,
         set/3
@@ -60,6 +61,9 @@
 
 new() ->
     {c, '', []}.
+
+new({c, '', Data}, Key) ->
+    {c, '', [{c, Key, Data}]}.
 
 set(IData, Address, Value) when is_atom(Address); is_list(Address) ->
     {ParentAddress, Key} = erlcfg_node_addr:emancipate(Address),
