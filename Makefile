@@ -5,9 +5,17 @@ EBIN_DIR=ebin
 INCLUDE_DIR=include
 SRC_DIR=src
 
+ifeq ($(shell uname -o),Cygwin)
+	EXT=.cmd
+else
+  EXT=
+endif
+
+REBAR=rebar$(EXT)
+
 all: 
-	rebar compile
-	@echo All Done
+	@[ ! -d deps ] && $(REBAR) get-deps || true
+	$(REBAR) compile
 
 test: all
 	@cd tests;make
