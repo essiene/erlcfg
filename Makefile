@@ -24,7 +24,7 @@ test: all
 clean:
 	@make -C src clean --no-print-directory
 	@make -C tests clean --no-print-directory
-	@rm -rf ebin priv .eunit .rebar erl_crash.dump *.tar.gz c_src/*.o compile_commands.json *.pdb
+	@rm -rf ebin .eunit .rebar erl_crash.dump *.tar.gz c_src/*.o priv/*.{exp,lib} compile_commands.json *.pdb
 	@rm -rf $(NAME)-$(VERSION)
 
 install: all

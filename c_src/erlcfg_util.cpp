@@ -192,10 +192,11 @@ static ERL_NIF_TERM strftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 // Same functionality as strptime(3)
 //  (Format :: string() | binary(), Now :: {MS, S, Ms}, utc | local) ->
 //      {DateTime :: {Date::{Y,M,D}, Time::{H,M,S}}, ProcessedLen::integer()}
-static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int /*argc*/, const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
-    (void*)argv; // Remove compiler warning
 #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
+    (void*)argc; // Remove compiler warning
+    (void*)argv; // Remove compiler warning
     return enif_make_tuple2(env, ATOM_ERROR, ATOM_NOT_IMPL);
 #else
     char         buf[512], fmt[512];
