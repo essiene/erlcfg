@@ -95,16 +95,25 @@ init() ->
     erlang:load_nif(SoName, 0).
 
 getdir(LibName) ->
+    Target =  case os:type() of
+              {win32, _} -> ".win";
+              _          -> ""
+              end,
+    Arch   =  case erlang:system_info(wordsize) of
+              4 -> ".x86";
+              _ -> ".x64"
+              end,
+    Name = LibName ++ Target ++ Arch,
     case code:priv_dir(erlcfg) of
     {error, bad_name} ->
         case code:which(?MODULE) of
         Filename when is_list(Filename) ->
-            filename:join([filename:dirname(Filename), "../priv", LibName]);
+            filename:join([filename:dirname(Filename), "../priv", Name]);
         _ ->
-            filename:join("../priv", LibName)
+            filename:join("../priv", Name)
         end;
     Dir ->
-        filename:join(Dir, LibName)
+        filename:join(Dir, Name)
     end.
 
 check(_) ->
