@@ -92,12 +92,7 @@ strenv(Input) when is_list(Input); is_binary(Input) ->
 
 init() ->
     SoName = getdir(?LIBNAME),
-    case os:type() of
-    {win32,nt} ->
-        ok;
-    _ ->
-        erlang:load_nif(SoName, 0)
-    end.
+    erlang:load_nif(SoName, 0).
 
 getdir(LibName) ->
     case code:priv_dir(erlcfg) of
@@ -112,9 +107,6 @@ getdir(LibName) ->
         filename:join(Dir, LibName)
     end.
 
-check(S) ->
-    case os:type() of
-    {win32,nt} -> S;
-    _          -> throw({library_not_loaded, ?LIBNAME})
-    end.
+check(_) ->
+    throw({library_not_loaded, ?LIBNAME}).
  

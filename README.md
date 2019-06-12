@@ -12,6 +12,19 @@ This fork (by Serge Aleynikov) adds the following features:
 6. Comma-separation of key-value pairs on the same line
 7. Optional semi-column delimiter.
 
+## Building ##
+
+1. Linux
+```
+$ make
+```
+2. Windows
+
+  Run "Developer Command Prompt for VSxxxx" for proper machine target (i.e. 64 or 32 bit).
+```
+> rebar.cmd get-deps compile
+```
+
 ## Sample Config ##
 
 ```

@@ -34,14 +34,28 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
 // OF SUCH DAMAGE.
 // 
+
+#if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
+#pragma warning(disable : 4530)
+#pragma warning(disable : 4577)
+#pragma warning(disable : 4625)
+#pragma warning(disable : 4626)
+#pragma warning(disable : 4668)
+#pragma warning(disable : 4710)
+#pragma warning(disable : 4774)
+#pragma warning(disable : 4820)
+#pragma warning(disable : 5026)
+#pragma warning(disable : 5027)
+#pragma warning(disable : 5045)
+#include <Windows.h>
+#endif
+
 #include <erl_nif.h>
 #include <string.h>
 #include <ctime>
 #include <string>
+#include <tuple>
 #include <regex>
-#if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
-#include <Windows.h>
-#endif
 
 static ERL_NIF_TERM ATOM_OK;
 static ERL_NIF_TERM ATOM_ERROR;
@@ -72,7 +86,7 @@ extern "C" {
     ERL_NIF_INIT(erlcfg_util, nif_funcs, &on_load, NULL, &on_upgrade, NULL);
 };
 
-static int on_load(ErlNifEnv* env, void** priv_data, ERL_NIF_TERM load_info)
+static int on_load(ErlNifEnv* env, void** /*priv_data*/, ERL_NIF_TERM /*load_info*/)
 {
     ATOM_OK       = enif_make_atom(env, "ok");
     ATOM_ERROR    = enif_make_atom(env, "error");
@@ -88,18 +102,32 @@ static int on_upgrade(ErlNifEnv* env, void** priv_data, void**, ERL_NIF_TERM loa
     return on_load(env, priv_data, load_info);
 }
 
+std::string my_getenv(const char* var)
+{
+  #if defined(_WIN32) || defined(_WIN64)
+    size_t sz;
+    char buf[256];
+    if (getenv_s(&sz, buf, var)==0)
+      return buf;
+  #else
+    const char* s = getenv(var);
+    if (s) return s;
+  #endif
+    return std::string();
+}
+
 static std::string home() {
-    const char* env = getenv("HOME");
-    if (env)
+    auto env = my_getenv("HOME");
+    if (!env.empty())
         return env;
     #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
-    env = getenv("USERPROFILE");
-    if (env)
+    env = my_getenv("USERPROFILE");
+    if (!env.empty())
         return env;
-    char const* c = getenv("HOMEDRIVE"), *home = getenv("HOMEPATH");
-    return (!c || !home) ? "" : std::string(c) + home;
+    std::string c = my_getenv("HOMEDRIVE"), home = my_getenv("HOMEPATH");
+    return (c.empty() || home.empty()) ? std::string() : c + home;
     #else
-    return "";
+    return std::string();
     #endif
 }
 
@@ -108,12 +136,10 @@ void replace_env_vars(std::string& text) {
     static const std::regex env("\\$\\{([^\\$}]*)\\}");
     std::smatch match;
     while (std::regex_search(text, match, env)) {
-        std::string var;
-        if (match.length(1)) {
-            const char* s = getenv(match[1].str().c_str());
-            if (s) var = s;
-        }
-        text.replace(match.position(0), match.length(0), var);
+        std::string var = match.length(1)
+                        ? my_getenv(match[1].str().c_str())
+                        : std::string();
+        text.replace((unsigned)match.position(0), (unsigned)match.length(0), var);
     }
 }
 
@@ -123,12 +149,16 @@ char* maybe_copy_bin(ErlNifBinary& bin, char* buf, size_t sz)
         return (char*)bin.data;
 
     size_t n = bin.size < sz ? bin.size : sz-1;
+  #if defined(_WIN32) || defined(_WIN64)
+    strcpy_s(buf, n, (char*)bin.data);
+  #else
     strncpy(buf, (char*)bin.data, n);
+  #endif
     buf[n] = '\0';
     return buf;
 }
 
-static ERL_NIF_TERM str_to_term(ErlNifEnv* env, bool is_bin, const char* str, int sz)
+static ERL_NIF_TERM str_to_term(ErlNifEnv* env, bool is_bin, const char* str, size_t sz)
 {
     if (sz <= 0)
         return enif_make_badarg(env);
@@ -154,18 +184,17 @@ static ERL_NIF_TERM strftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 {
     char res[1024];
 
-    int  n;
-    bool is_bin;
-    std::tie(n, is_bin) = strftime_impl(env, argc, argv, res, sizeof(res));
+    auto r = strftime_impl(env, argc, argv, res, sizeof(res));
 
-    return str_to_term(env, is_bin, res, n);
+    return str_to_term(env, r.second, res, size_t(r.first));
 }
 
 // Same functionality as strptime(3)
 //  (Format :: string() | binary(), Now :: {MS, S, Ms}, utc | local) ->
 //      {DateTime :: {Date::{Y,M,D}, Time::{H,M,S}}, ProcessedLen::integer()}
-static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
+static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int /*argc*/, const ERL_NIF_TERM argv[])
 {
+    (void*)argv; // Remove compiler warning
 #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
     return enif_make_tuple2(env, ATOM_ERROR, ATOM_NOT_IMPL);
 #else
@@ -235,7 +264,7 @@ static ERL_NIF_TERM pathftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
     if (n <= 0)
         return enif_make_badarg(env);
 
-    std::string s(res, n);
+    std::string s(res, (size_t)n);
 
     if (res[0] == '~')
         s.replace(s.begin(), s.begin()+1, home());
@@ -255,7 +284,7 @@ static ERL_NIF_TERM strenv_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
     if (argc != 1)
         return enif_make_badarg(env);
 
-    bool is_bin = enif_is_binary(env, argv[0]);
+    bool is_bin = (bool)enif_is_binary(env, argv[0]);
 
     if (is_bin) {
         if (!enif_inspect_binary(env, argv[0], &bin))
@@ -266,7 +295,7 @@ static ERL_NIF_TERM strenv_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
         int n = enif_get_string(env, argv[0], buf, sizeof(buf), ERL_NIF_LATIN1);
         if (n <= 0)
             return enif_make_badarg(env);
-        s.assign(buf, n-1); // Less trailing zero
+        s.assign(buf, size_t(n-1)); // Less trailing zero
     }
 
     replace_env_vars(s);
@@ -290,7 +319,7 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
     if (argc != 3)
         return std::make_pair(-1, false);
 
-    bool is_bin = enif_is_binary(env, argv[0]);
+    bool is_bin = (bool)enif_is_binary(env, argv[0]);
 
     if (is_bin) {
         if (!enif_inspect_binary(env, argv[0], &bin))
@@ -308,13 +337,20 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
 
     // i array contains result of erlang:now()
     time_t   t = i[0] * 1000000 + i[1];
-    bool   utc = enif_is_identical(argv[2], ATOM_UTC);
+    bool   utc = (bool)enif_is_identical(argv[2], ATOM_UTC);
     struct tm tm;
 
+  #if defined(_WIN32) || defined(_WIN64)
+    if (utc)
+        gmtime_s(&tm, &t);
+    else
+        localtime_s(&tm, &t);
+  #else
     if (utc)
         gmtime_r(&t, &tm);
     else
         localtime_r(&t, &tm);
+  #endif
 
     return std::make_pair((int)strftime(res, sz, pbuf, &tm), is_bin);
 }
