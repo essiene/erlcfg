@@ -4,9 +4,12 @@ ERL_LIB=/usr/lib/erlang/lib
 EBIN_DIR=ebin
 INCLUDE_DIR=include
 SRC_DIR=src
+UNAME=$(shell uname -o)
 
-ifeq ($(shell uname -o),Cygwin)
+ifeq ($(UNAME),Cygwin)
 	EXT=.cmd
+else ifeq ($(UNAME),Msys)
+  EXT=.cmd
 else
   EXT=
 endif
