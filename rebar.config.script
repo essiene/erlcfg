@@ -1,0 +1,18 @@
+case os:type() of
+  {win32, _} ->
+    Sfx =
+      case os:getenv("PROCESSOR_ARCHITECTURE") of
+        "x86" -> "x86";
+        _     -> "x64"
+      end,
+    File = "priv/erlcfg_nifs.win."++Sfx++".dll",
+    case {filelib:is_regular(File), os:getenv("REBUILD")} of
+      {true, false} ->
+        lists:keydelete(port_specs, 1, CONFIG);
+      _ ->
+        Val = [{File, ["c_src/*.cpp"]}],
+        lists:keystore(port_specs, 1, CONFIG, {port_specs, Val})
+    end;
+  _ ->
+    CONFIG
+end.
