@@ -95,14 +95,15 @@ init() ->
     erlang:load_nif(SoName, 0).
 
 getdir(LibName) ->
-    Target =  case os:type() of
-              {win32, _} -> ".win";
-              _          -> ""
+    Target = case os:type() of
+                {win32, _}   -> ".win";
+                {unix,linux} -> ".linux";
+                _            -> ""
               end,
-    Arch   =  case erlang:system_info(wordsize) of
-              4 -> ".x86";
-              _ -> ".x64"
-              end,
+    Arch   = case erlang:system_info(wordsize) of
+                4 -> ".x86";
+                _ -> ".x64"
+             end,
     Name = LibName ++ Target ++ Arch,
     case code:priv_dir(erlcfg) of
     {error, bad_name} ->

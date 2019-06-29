@@ -76,7 +76,7 @@ common {
 }
 
 general {
-    listen = ("192.168.5.3", "168.99.5.23");
+    listen = ["192.168.5.3", "168.99.5.23"];
     port = $common.port.rest;
 
     wait {

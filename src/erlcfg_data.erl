@@ -43,6 +43,7 @@
         set/2,
         get/1,
         get/2,
+        exists/1,
         raw_get/1,
         raw_get/2,
         split/1,
@@ -83,7 +84,7 @@ set(Key, Value) ->
         NewNode ->
             erlcfg_data:new(NewNode)
     end.
-        
+
 
 raw_get(Key) ->
     case erlcfg_node:get(Node, Key) of
@@ -99,6 +100,12 @@ raw_get(Key, Default) ->
             Default;
         Value ->
             Value
+    end.
+
+exists(Key) ->
+    case raw_get(Key) of
+        {error, _} -> false;
+        _          -> true
     end.
 
 get(Key, Default) ->

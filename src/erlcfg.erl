@@ -41,6 +41,9 @@
         new/1,
         new/2,
         new/3,
+        string/1,
+        string/2,
+        string/3,
         join_paths/1,
         join_paths/2
     ]).
@@ -53,11 +56,8 @@
 new() ->
     {ok, erlcfg_data:new(erlcfg_node:new())}.
 
-new(FileName) ->
-    new(FileName, false, []).
-
-new(FileName, ValidateSchema) when is_boolean(ValidateSchema) ->
-    new(FileName, ValidateSchema, []).
+new(FileName)                 -> new(FileName, false, #{}).
+new(FileName, ValidateSchema) -> new(FileName, ValidateSchema, #{}).
 
 new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_list(Macros) ->
     MacrosMap = maps:from_list(Macros),
@@ -67,6 +67,12 @@ new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is
     new(Binary, Validate, Macros);
 new(CfgData, Validate, Macros) when is_binary(CfgData), is_boolean(Validate), is_map(Macros) ->
     String = binary_to_list(CfgData),
+    string(String, Validate, Macros).
+
+string(String)           -> string(String, false,    #{}).
+string(String, Validate) -> string(String, Validate, #{}).
+
+string(String, Validate, Macros) when is_list(String), is_boolean(Validate), is_map(Macros) ->
     {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
     {ok, Ast} = erlcfg_parser:parse(TokenList),
     {ok, #interp{schema_table=Schema, node=Node}} = erlcfg_interp:interpret(Ast, Macros),
