@@ -6,6 +6,7 @@ c_src/erlcfg_util.o
 src/*_lexer.erl
 src/*_parser.erl
 .rebar
+.rebar3
 deps
 priv/*.exp
 priv/*.lib
@@ -17,3 +18,4 @@ erl_crash.dump
 *.bz2
 *.rpm
 erlcfg-*/
+.eunit
