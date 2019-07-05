@@ -36,6 +36,7 @@
 // 
 
 #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
+#pragma warning(disable : 26451)
 #pragma warning(disable : 4530)
 #pragma warning(disable : 4577)
 #pragma warning(disable : 4625)
@@ -108,8 +109,8 @@ std::string my_getenv(const char* var)
   #if defined(_WIN32) || defined(_WIN64)
     size_t sz;
     char buf[256];
-    if (getenv_s(&sz, buf, var)==0)
-      return buf;
+    if (getenv_s(&sz, buf, sizeof(buf) - 1, var) == 0)
+      return std::string(buf, sz);
   #else
     const char* s = getenv(var);
     if (s) return s;
@@ -121,6 +122,8 @@ static std::string normalize(std::string& s) {
 #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
   replace(s.begin(), s.end(), '\\', '/');
 #endif
+  if (!s.empty() && s.back() == '/')
+    s = s.erase(s.length() - 1);
   return s;
 }
 
@@ -146,34 +149,27 @@ std::string dirname(const std::string& file) {
 }
 
 static const std::string cs_home("HOME");
-static const std::string cs_tilda("~");
-
-#include <iostream>
 
 // Update the input string.
 bool replace_env_vars(std::string& text) {
   try {
-    const std::regex env("(?:(?:^(~))[\\w/]|(?:\\s(~))[\\w/]|(?:\\$\\{([^\\$\\}]+)\\})|(?:\\$([A-Za-z][^\\s$]+)))");
+    const std::regex env("(?:(?:\\$\\{([^\\$\\}]+)\\})|(?:\\$([A-Za-z][^\\s$]+)))");
     std::smatch m;
     while (std::regex_search(text, m, env)) {
       auto beg = std::sregex_iterator(text.begin(), text.end(), env);
       auto end = std::sregex_iterator();
 
       std::string s;
-      unsigned p, l;
-      unsigned pos, len;
+      unsigned p = 0, l = 0;
 
       //for (auto i = beg; i != end && s.empty(); ++i) {
       for (auto index = 1u; index < m.size(); ++index) {
         //auto m = *i;
         //for (auto index = 1u; index < m.size(); ++index) {
           if (m[index].matched && !m[index].str().empty()) {
-            p = m.position(0);
-            l = m.length(0);
+            p = unsigned(m.position(0));
+            l = unsigned(m.length(0));
             s = m[index].str();
-            pos = m.position(index);
-            len = m.length(index);
-            if (len == 1 && l > 1) l = 1;  // This is the case when text = "~abc", we want the match to preserve "a"
             break;
           }
         //}
@@ -181,12 +177,7 @@ bool replace_env_vars(std::string& text) {
       if (s.empty())
         return true;
       std::string var;
-      if (s == cs_tilda) {
-        var = dirname(home());
-        if (!var.empty() && var[var.length()-1] != '/')
-          var += "/";
-      }
-      else if (s == cs_home)
+      if (s == cs_home)
         var = home();
       else
         var = my_getenv(s.c_str());
@@ -253,7 +244,7 @@ static ERL_NIF_TERM strftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
 #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
-    (void*)argc; // Remove compiler warning
+    (int*)&argc; // Remove compiler warning
     (void*)argv; // Remove compiler warning
     return enif_make_tuple2(env, ATOM_ERROR, ATOM_NOT_IMPL);
 #else
@@ -325,9 +316,12 @@ static ERL_NIF_TERM pathftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM a
 
     std::string s(res, (size_t)n);
 
-    if (res[0] == '~')
-        s.replace(s.begin(), s.begin()+1, home());
-
+    if (res[0] == '~') {
+        auto h = home();
+        if (s.length() > 1 && s[1] != '/' && h.length() > 0 && h.back() != '/')
+          h.append("/");
+        s.replace(s.begin(), s.begin() + 1, h);
+    }
     replace_env_vars(s);
 
     return str_to_term(env, is_bin, s.c_str(), s.size());
@@ -354,7 +348,7 @@ static ERL_NIF_TERM strenv_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
         int n = enif_get_string(env, argv[0], buf, sizeof(buf), ERL_NIF_LATIN1);
         if (n <= 0)
             return enif_make_badarg(env);
-        s.assign(buf, size_t(n-1)); // Less trailing zero
+        s.assign(buf, size_t(n)-1); // Less trailing zero
     }
 
     return replace_env_vars(s)
@@ -369,7 +363,7 @@ static std::pair<int, bool>
 strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, size_t sz)
 {
     const ERL_NIF_TERM* time_tup;
-    long         i[2];
+    long         i0, i1;
     int          arity;
     char         buf[512];
     const char*  pbuf;
@@ -389,13 +383,18 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
     else
         return std::make_pair(-1, false);
 
-    if (!enif_get_tuple (env, argv[1], &arity, &time_tup) // Arity is 3 here
-        || !enif_get_long(env, time_tup[0], &i[0])
-        || !enif_get_long(env, time_tup[1], &i[1])) // we don't decode 3rd int (usec)
+    time_t t;
+
+    if (enif_get_long(env, argv[1], &i0))
+        t = i0; // If param is integer 
+    else if (enif_get_tuple (env, argv[1], &arity, &time_tup) // Arity is 3 here
+          && enif_get_long(env, time_tup[0], &i0)
+          && enif_get_long(env, time_tup[1], &i1)) // we don't decode 3rd int (usec)
+        t = time_t(i0 * 1000000LL + i1);
+    else
         return std::make_pair(-1, false);
 
     // i array contains result of erlang:now()
-    time_t   t = i[0] * 1000000 + i[1];
     bool   utc = (bool)enif_is_identical(argv[2], ATOM_UTC);
     struct tm tm;
 

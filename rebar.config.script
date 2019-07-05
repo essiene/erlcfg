@@ -1,5 +1,3 @@
-%Test = os:getenv("ERLCFG_TEST") /= false,
-
 {Tgt,Ext} = case os:type() of
               {win32, _}   -> {".win", ".dll"};
               {unix,linux} -> {".linux",".so"};
