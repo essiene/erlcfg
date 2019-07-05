@@ -110,7 +110,7 @@ std::string my_getenv(const char* var)
     size_t sz;
     char buf[256];
     if (getenv_s(&sz, buf, sizeof(buf) - 1, var) == 0)
-      return std::string(buf, sz);
+      return std::string(buf, sz-1);
   #else
     const char* s = getenv(var);
     if (s) return s;
