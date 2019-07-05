@@ -56,6 +56,7 @@
 #include <string>
 #include <tuple>
 #include <regex>
+#include <iterator>
 
 static ERL_NIF_TERM ATOM_OK;
 static ERL_NIF_TERM ATOM_ERROR;
@@ -116,31 +117,88 @@ std::string my_getenv(const char* var)
     return std::string();
 }
 
+static std::string normalize(std::string& s) {
+#if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
+  replace(s.begin(), s.end(), '\\', '/');
+#endif
+  return s;
+}
+
 static std::string home() {
     auto env = my_getenv("HOME");
-    if (!env.empty())
-        return env;
     #if defined(_MSC_VER) || defined(_WIN32) || defined(__CYGWIN32__)
+    if (!env.empty())
+      return normalize(env);
     env = my_getenv("USERPROFILE");
     if (!env.empty())
-        return env;
-    std::string c = my_getenv("HOMEDRIVE"), home = my_getenv("HOMEPATH");
-    return (c.empty() || home.empty()) ? std::string() : c + home;
+        return normalize(env);
+    auto c = my_getenv("HOMEDRIVE");
+    std::string home = my_getenv("HOMEPATH");
+    return (c.empty() || home.empty()) ? std::string() : c + normalize(home);
     #else
-    return std::string();
+    return env;
     #endif
 }
 
+std::string dirname(const std::string& file) {
+  auto found = file.find_last_of("/");
+  return found == std::string::npos ? file : file.substr(0, found);
+}
+
+static const std::string cs_home("HOME");
+static const std::string cs_tilda("~");
+
+#include <iostream>
+
 // Update the input string.
-void replace_env_vars(std::string& text) {
-    static const std::regex env("\\$\\{([^\\$}]*)\\}");
-    std::smatch match;
-    while (std::regex_search(text, match, env)) {
-        std::string var = match.length(1)
-                        ? my_getenv(match[1].str().c_str())
-                        : std::string();
-        text.replace((unsigned)match.position(0), (unsigned)match.length(0), var);
+bool replace_env_vars(std::string& text) {
+  try {
+    const std::regex env("(?:(?:^(~))[\\w/]|(?:\\s(~))[\\w/]|(?:\\$\\{([^\\$\\}]+)\\})|(?:\\$([A-Za-z][^\\s$]+)))");
+    std::smatch m;
+    while (std::regex_search(text, m, env)) {
+      auto beg = std::sregex_iterator(text.begin(), text.end(), env);
+      auto end = std::sregex_iterator();
+
+      std::string s;
+      unsigned p, l;
+      unsigned pos, len;
+
+      //for (auto i = beg; i != end && s.empty(); ++i) {
+      for (auto index = 1u; index < m.size(); ++index) {
+        //auto m = *i;
+        //for (auto index = 1u; index < m.size(); ++index) {
+          if (m[index].matched && !m[index].str().empty()) {
+            p = m.position(0);
+            l = m.length(0);
+            s = m[index].str();
+            pos = m.position(index);
+            len = m.length(index);
+            if (len == 1 && l > 1) l = 1;  // This is the case when text = "~abc", we want the match to preserve "a"
+            break;
+          }
+        //}
+      }
+      if (s.empty())
+        return true;
+      std::string var;
+      if (s == cs_tilda) {
+        var = dirname(home());
+        if (!var.empty() && var[var.length()-1] != '/')
+          var += "/";
+      }
+      else if (s == cs_home)
+        var = home();
+      else
+        var = my_getenv(s.c_str());
+
+      text.replace(p, l, var);
     }
+    return true;
+  }
+  catch (std::exception& e) {
+    fprintf(stderr, "Exception: %s\r\n", e.what());
+    return false;
+  }
 }
 
 char* maybe_copy_bin(ErlNifBinary& bin, char* buf, size_t sz)
@@ -292,16 +350,16 @@ static ERL_NIF_TERM strenv_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
             return enif_make_badarg(env);
         s.assign((const char*)bin.data, bin.size);
     } else {
-        char buf[1024];
+      char buf[1024];
         int n = enif_get_string(env, argv[0], buf, sizeof(buf), ERL_NIF_LATIN1);
         if (n <= 0)
             return enif_make_badarg(env);
         s.assign(buf, size_t(n-1)); // Less trailing zero
     }
 
-    replace_env_vars(s);
-
-    return str_to_term(env, is_bin, s.c_str(), s.size());
+    return replace_env_vars(s)
+         ? str_to_term(env, is_bin, s.c_str(), s.size())
+         : enif_make_badarg(env);
 }
 
 // Common functionality of strftime(3) callable from other functions
@@ -356,3 +414,20 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
     return std::make_pair((int)strftime(res, sz, pbuf, &tm), is_bin);
 }
 
+#ifdef ERLCFG_TEST
+int main(int argc, char* argv[]) {
+  if (argc < 1) {
+    printf("Usage %s 'StringWith ${var} or $var' ...\n", argv[0]);
+    exit(1);
+  }
+
+  for (int i = 1; i < argc; ++i) {
+    std::string s(argv[i]);
+    replace_env_vars(s);
+    printf("%s => %s\n", argv[i], s.c_str());
+  }
+
+  return 0;
+}
+
+#endif
