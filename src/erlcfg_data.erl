@@ -41,6 +41,7 @@
         raw/0,
         create/2,
         set/2,
+        set_default/2,
         get/1,
         get/2,
         exists/1,
@@ -63,7 +64,8 @@
         walk/1,
         set_app_env/0,
         set_app_env/1,
-        set_app_env/2
+        set_app_env/2,
+        set_app_env/3
     ]).
 
 
@@ -92,6 +94,16 @@ set(Key, Value) ->
             erlcfg_data:new(NewNode)
     end.
 
+%% @doc Set `Value' of `Key' if the `Key' is not found in config
+set_default(Key, Value) ->
+    case erlcfg_node:if_node_found(Node, Key, fun(_) -> Node end) of
+        {not_found, _MissingNode} ->
+            erlcfg_data:new(set(Key, Value));
+        {error, Reason} ->
+            {error, Reason};
+        Tree ->
+            Tree
+    end.
 
 raw_get(Key) ->
     case erlcfg_node:get(Node, Key) of
@@ -216,8 +228,7 @@ print(Prefix, KeyFun) ->
     walk(Fun).
 
 walk(Fun) ->
-    {erlcfg_data, Tree} = THIS,
-    walk(Tree, 0, [], Fun).
+    walk(Node, 0, [], Fun).
 
 walk({c,_,[]},_,_,_)   -> ok;
 walk({c,_N,L},Indent,RevPath,Fun) ->
@@ -229,16 +240,22 @@ walk({d,_K,V},Indent,RevPath,Fun) ->
 
 set_app_env()    -> set_app_env(application:get_application()).
 set_app_env(App) -> set_app_env(App, []).
-set_app_env(App, RemoveKeyPrefix) when [] == RemoveKeyPrefix
-                                     ; is_list(RemoveKeyPrefix)
-                                     , is_atom(hd(RemoveKeyPrefix)) ->
+set_app_env(App, RemoveKeyPrefix) -> set_app_env(App, RemoveKeyPrefix, undefined).
+set_app_env(App, RemoveKeyPrefix, Filter) when [] == RemoveKeyPrefix
+                                             ; is_list(RemoveKeyPrefix)
+                                             , is_atom(hd(RemoveKeyPrefix)) ->
     Fun = fun(node,     _Indent,_RevPath) -> ok;
              ({value,V},_Indent, RevPath) ->
               Path = remove_key_prefix(lists:reverse(RevPath), RemoveKeyPrefix),
-              application:set_env(
-                  App,
-                  list_to_atom(string:join([atom_to_list(I) || I <- Path], ".")),
-                  V)
+              case Filter==undefined orelse Filter(RevPath) of
+                  true ->
+                      application:set_env(
+                          App,
+                          list_to_atom(string:join([atom_to_list(I) || I <- Path], ".")),
+                          V);
+                  false ->
+                      ok
+              end
           end,
     walk(Fun).
 
