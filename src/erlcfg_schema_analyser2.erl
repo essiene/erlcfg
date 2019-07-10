@@ -116,7 +116,7 @@ rhs(#macro{name=Name}, Type, Macros) ->
         error       -> throw({macro_not_found, Name})
     end;
 rhs(#env{name=Name}, Type, _Macros) ->
-    case os:getenv(Name) of
+    case os:getenv(to_list(Name)) of
         Value when is_list(Value) ->
             to_type(Type, Value);
         false ->
@@ -124,6 +124,10 @@ rhs(#env{name=Name}, Type, _Macros) ->
     end;
 rhs(Other, _Type, _Macros) ->
     Other.
+
+to_list(V) when is_binary(V) -> binary_to_list(V);
+to_list(V) when is_list(V)   -> V;
+to_list(V) when is_atom(V)   -> atom_to_list(V).
 
 to_attrs(Type, Name, Attrs, Validator, Macros) ->
     lists:foldl(fun

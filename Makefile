@@ -20,8 +20,11 @@ all:
 	@[ ! -d deps ] && $(REBAR) get-deps || true
 	$(REBAR) compile
 
+eunit:
+	@rebar eunit $(if $(suite),suite=$(suite))
+
 test: all
-	@cd tests;make
+	@cd tests;make test $(if $(suite),suite=$(suite))
 	@echo Tests Done
 
 clean:

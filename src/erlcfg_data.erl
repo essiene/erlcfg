@@ -98,11 +98,11 @@ set(Key, Value) ->
 set_default(Key, Value) ->
     case erlcfg_node:if_node_found(Node, Key, fun(_) -> Node end) of
         {not_found, _MissingNode} ->
-            erlcfg_data:new(set(Key, Value));
+            set(Key, Value);
         {error, Reason} ->
             {error, Reason};
-        Tree ->
-            Tree
+        _Tree ->
+            THIS
     end.
 
 raw_get(Key) ->

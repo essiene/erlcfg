@@ -100,8 +100,9 @@ checked_file_pass_test() ->
     ?assertEqual(5, Config:get('callentry.rttl')),
     ?assertEqual(60, Config:get('callentry.qttl')),
     ?assertEqual(low, Config:get('callentry.requeue.priority')),
-    
+
     ?assertThrow({macro_not_found, name}, erlcfg:new("checked2.conf", true, #{env => <<"test">>})),
+
     {ok, C} = erlcfg:new("checked2.conf", true, #{name => <<"k">>, env => <<"test">>}),
     ?assertEqual("k", C:get('ami.xxx')).
 

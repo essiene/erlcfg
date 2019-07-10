@@ -111,6 +111,21 @@ get_default_value_test() ->
     ?assertEqual(10, Config:get('int.moo', 10)).
 
 
+get_set_def_value_test() ->
+    Data = {c, '', [
+        {d, int, 5}, 
+        {d, atom, baz}, 
+        {d, string, <<"A string">>}
+    ]},
+    Config = erlcfg_data:new(Data),
+    ?assertEqual(5, Config:get(int)),
+    C1 = Config:set_default(int, 6),
+    ?assertEqual(5, C1:get(int)),
+    ?assertNot(C1:exists(list)),
+    C2 = C1:set_default(list, [a]),
+    ?assertEqual([a], C2:get(list)).
+
+
 get_twolevels_test() ->
     Data = {c, '', [
         {c, foo, 

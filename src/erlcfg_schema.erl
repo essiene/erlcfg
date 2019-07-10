@@ -85,7 +85,7 @@ validate2(SchemaTable, Config) when is_map(SchemaTable) ->
         {ok, Config}, SchemaTable).
 
 validate3(Key, _D = #declaration{type=Tp, attrs=Attrs, validator=Val}, Config) ->
-    V = case Config:raw_get(Key) of
+    V = case erlcfg_data:raw_get(Key, Config) of
         {error, _} ->
             case ensure_raw_default(Tp, Attrs#attrs.default) of
                 ?ERLCFG_SCHEMA_NIL ->
@@ -112,7 +112,7 @@ validate3(Key, _D = #declaration{type=Tp, attrs=Attrs, validator=Val}, Config) -
     end,
     validate_type(Key, V, Val, Config).
 
-validate_type(Key, Value, Validator, Config) ->
+validate_type(Key, Value, Validator, Config) when is_tuple(Config), element(1,Config)==erlcfg_data ->
     Test = Validator#validator.test,
     case Test(Value) of
         false ->
