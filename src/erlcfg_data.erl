@@ -56,7 +56,14 @@
         data/1,
         data/2,
         children/0,
-        children/1
+        children/1,
+        print/0,
+        print/1,
+        print/2,
+        walk/1,
+        set_app_env/0,
+        set_app_env/1,
+        set_app_env/2
     ]).
 
 
@@ -193,3 +200,50 @@ find_and_convert_string([], Acc) ->
 find_and_convert_string([Head|Rest], Acc) ->
     find_and_convert_string(Rest, [find_and_convert_string(Head) | Acc]).
     
+print() ->
+    THIS:print("").
+print(Prefix) ->
+    KeyFun = fun(node, L)     -> string:join(lists:reverse([atom_to_list(I) || I <- L]), "/");
+                (value,[K|_]) -> atom_to_list(K)
+             end,
+    print(Prefix, KeyFun).
+print(Prefix, KeyFun) ->
+    Fun = fun(node,     Indent,RevPath) ->
+                io:format("~s~*c/~s\n",     [Prefix, Indent*2, $\s, KeyFun(node, RevPath)]);
+             ({value,V},Indent,RevPath) ->
+                io:format("~s~*c~s = ~p\n", [Prefix, Indent*2, $\s, KeyFun(value,RevPath),V])
+          end,
+    walk(Fun).
+
+walk(Fun) ->
+    {erlcfg_data, Tree} = THIS,
+    walk(Tree, 0, [], Fun).
+
+walk({c,_,[]},_,_,_)   -> ok;
+walk({c,_N,L},Indent,RevPath,Fun) ->
+    Fun(node, Indent,RevPath),
+    [walk(II,Indent+1,[element(2,II)|RevPath],Fun) || II <- L],
+    ok;
+walk({d,_K,V},Indent,RevPath,Fun) ->
+    Fun({value, V}, Indent, RevPath).
+
+set_app_env()    -> set_app_env(application:get_application()).
+set_app_env(App) -> set_app_env(App, []).
+set_app_env(App, RemoveKeyPrefix) when [] == RemoveKeyPrefix
+                                     ; is_list(RemoveKeyPrefix)
+                                     , is_atom(hd(RemoveKeyPrefix)) ->
+    Fun = fun(node,     _Indent,_RevPath) -> ok;
+             ({value,V},_Indent, RevPath) ->
+              Path = remove_key_prefix(lists:reverse(RevPath), RemoveKeyPrefix),
+              application:set_env(
+                  App,
+                  list_to_atom(string:join([atom_to_list(I) || I <- Path], ".")),
+                  V)
+          end,
+    walk(Fun).
+
+remove_key_prefix([], _) -> [];
+remove_key_prefix(L, []) -> L;
+remove_key_prefix([H|T1],[H|T2]) -> remove_key_prefix(T1, T2);
+remove_key_prefix(Key,_) -> Key.
+
