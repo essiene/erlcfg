@@ -6,13 +6,15 @@ ERL_FLAGS= -pa $(EBIN_DIR) -I $(INCLUDE_DIR)
 
 FILES=$(patsubst %.erl,%,$(wildcard *.erl))
 OBJECTS=$(FILES:%=$(EBIN_DIR)/%.beam)
+SUITE=$(if $(suite),$(suite),$(FILES))
+leftparen:=(
+rightparen:=)
+comma:=,
+ALL_TESTS=$(foreach t,$(SUITE),-eval "io:format$(leftparen)\"Running suite ~-25w: \"$(comma) [$(t)]$(rightparen), $(t):test().")
 
 test: compile
-	for f in $(if $(suite),$(suite),$(FILES)); do \
-    A="Running $$f suite:                 "; echo -en "$${A:0:35}"; \
-    erl $(ERL_FLAGS) -noshell -s $$f test -s erlang halt; \
-  done
-	@echo ==> Finished running tests
+	@erl $(ERL_FLAGS) -noshell $(ALL_TESTS) -s erlang halt
+	@echo "==> Finished running tests"
 
 info:
 	@echo "Objects: $(FILES)"

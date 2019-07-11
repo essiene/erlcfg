@@ -194,16 +194,18 @@ bool replace_env_vars(std::string& text) {
 
 char* maybe_copy_bin(ErlNifBinary& bin, char* buf, size_t sz)
 {
-    if (bin.data[bin.size] == '\0')
+    if (bin.data[bin.size-1] == '\0')
         return (char*)bin.data;
 
-    size_t n = bin.size < sz ? bin.size : sz-1;
   #if defined(_WIN32) || defined(_WIN64)
-    strcpy_s(buf, n, (char*)bin.data);
+    auto n = bin.size + 1 < sz ? bin.size + 1 : sz - 1;
+    strncpy_s(buf, n, (char*)bin.data, _TRUNCATE);
   #else
+    auto n = bin.size < sz ? bin.size : sz-1;
     strncpy(buf, (char*)bin.data, n);
-  #endif
     buf[n] = '\0';
+  #endif
+
     return buf;
 }
 
@@ -235,6 +237,9 @@ static ERL_NIF_TERM strftime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
 
     auto r = strftime_impl(env, argc, argv, res, sizeof(res));
 
+    if (r.first <= 0)
+      return enif_make_badarg(env);
+
     return str_to_term(env, r.second, res, size_t(r.first));
 }
 
@@ -248,7 +253,7 @@ static ERL_NIF_TERM strptime_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM ar
     (void*)argv; // Remove compiler warning
     return enif_make_tuple2(env, ATOM_ERROR, ATOM_NOT_IMPL);
 #else
-    char         buf[512], fmt[512];
+    char         buf[1024], fmt[1024];
     const char*  pbuf, *pfmt;
     ErlNifBinary sbin,  fbin;
 
@@ -357,7 +362,7 @@ static ERL_NIF_TERM strenv_nif(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
 }
 
 // Common functionality of strftime(3) callable from other functions
-//  (Format :: string() | binary(), Now :: {MS, S, Ms}, utc | local) ->
+//  (Format :: string() | binary(), Now :: EpochSecs::integer()|{MS, S, Ms}, utc | local) ->
 //      number of bytes written to res.
 static std::pair<int, bool> 
 strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, size_t sz)
@@ -365,7 +370,7 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
     const ERL_NIF_TERM* time_tup;
     long         i0, i1;
     int          arity;
-    char         buf[512];
+    char         buf[1024];
     const char*  pbuf;
     ErlNifBinary bin;
 
@@ -387,7 +392,8 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
 
     if (enif_get_long(env, argv[1], &i0))
         t = i0; // If param is integer 
-    else if (enif_get_tuple (env, argv[1], &arity, &time_tup) // Arity is 3 here
+    else if (enif_get_tuple(env, argv[1], &arity, &time_tup) // Arity is 3 here
+          && arity == 3
           && enif_get_long(env, time_tup[0], &i0)
           && enif_get_long(env, time_tup[1], &i1)) // we don't decode 3rd int (usec)
         t = time_t(i0 * 1000000LL + i1);
@@ -410,11 +416,15 @@ strftime_impl(ErlNifEnv* env, int argc, const ERL_NIF_TERM* argv, char* res, siz
         localtime_r(&t, &tm);
   #endif
 
-    return std::make_pair((int)strftime(res, sz, pbuf, &tm), is_bin);
+    int    rc = (int)strftime(res, sz, pbuf, &tm);
+    return rc ? std::make_pair(rc, is_bin) : std::make_pair(-1, false);
 }
 
 #ifdef ERLCFG_TEST
 int main(int argc, char* argv[]) {
+
+  //pathftime("~/file.${USER}.log.%Y%m%d-%H%M%S").
+
   if (argc < 1) {
     printf("Usage %s 'StringWith ${var} or $var' ...\n", argv[0]);
     exit(1);

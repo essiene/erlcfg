@@ -109,7 +109,7 @@ rhs(#macro{name=Name}, #interp{macros=Map}=State) ->
             throw({macro_not_found, Name})
     end;
 
-rhs(#env{name=Name}, State) ->
+rhs(#env{name=Name}, State) when is_list(Name) ->
     case os:getenv(Name) of
         Value when is_list(Value) ->
             State#interp{value = list_to_binary(Value)};
@@ -172,11 +172,24 @@ cons(#cons{head=Head, tail=Tail}, State) ->
     NewState = rhs(Head, State),
     [NewState#interp.value | cons(Tail, NewState)].
 
-to_now(undefined, _) -> erlang:timestamp();
-to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 10 ->
-    erlcfg_util:strptime(Format, <<"%Y-%m-%d">>, Utc);
-to_now(Format,  Utc) when is_binary(Format), byte_size(Format) =:= 19 ->
-    erlcfg_util:strptime(Format, <<"%Y-%m-%d %H:%M:%S">>, Utc).
+to_now(undefined, _) -> erlang:system_time(seconds);
+to_now(Format, Utc) when is_binary(Format) andalso (Utc==utc orelse Utc==local) ->
+    Re = <<"(\\d{4})-(\\d{1,2})-(\\d{1,2})(?: (\\d{1,2}):(\\d{1,2}):(\\d{1,2})){0,1}">>,
+    case re:run(Format, Re, [{capture, all, list}]) of
+        {match,[_,_YYYY,_MM,_DD]=L} ->
+            [Y,M,D] = [list_to_integer(I) || I <- tl(L)],
+            to_now2({{Y,M,D},{0,0,0}}, Utc);
+        {match,[_,_YYYY,_MM,_DD,_HH,_Mi,_SS]=L} ->
+            [Y,M,D,H,Mi,S] = [list_to_integer(I) || I <- tl(L)],
+            to_now2({{Y,M,D},{H,Mi,S}}, Utc);
+        no_match ->
+            throw({invalid_time_format, Format})
+    end.
+
+to_now2(DateTime, utc) ->
+    erlang:universaltime_to_posixtime(DateTime);
+to_now2(DateTime, local) ->
+    erlang:universaltime_to_posixtime(calendar:local_time_to_universal_time_dst(DateTime)).
 
 to_bin(B) when is_binary(B)  -> B;
 to_bin(B) when is_list(B)    -> list_to_binary(B);

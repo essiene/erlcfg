@@ -94,8 +94,8 @@ data -> variable     : {get,   get_value('$1')}.
 
 fun_args -> var                    : {list_to_atom(get_value('$1')), []}.
 fun_args -> string                 : {get_value('$1'), []}.
-fun_args -> var ',' assignments    : {list_to_atom(get_value('$1')), '$3'}.
-fun_args -> string ',' assignments : {get_value('$1'), '$3'}.
+fun_args -> var ',' assignments    : {list_to_atom(get_value('$1')), [{K,V} || {set, K, V} <- '$3']}.
+fun_args -> string ',' assignments : {get_value('$1'), [{K,V} || {set, K, V} <- '$3']}.
 
 list     -> '[' elements ']'       : {list, '$2'}.
 elements -> element ',' elements   : {cons, '$1', '$3'}.
