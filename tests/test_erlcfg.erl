@@ -104,9 +104,4 @@ checked_file_pass_test() ->
     ?assertThrow({macro_not_found, name}, erlcfg:new("checked2.conf", true, #{env => <<"test">>})),
 
     {ok, C} = erlcfg:new("checked2.conf", true, #{name => <<"k">>, env => <<"test">>}),
-    ?assertEqual("k", erlcfg_data:get('ami.xxx'), C).
-
-check_path_test() ->
-    S = "ami { path = $path{\"~/file.${USER}.log.%Y%m%d-%H%M%S\", tz=utc, now=\"2012-01-02 03:04:59\"} }",
-    R = erlcfg:string(S, false, #{name => <<"k">>, env => <<"test">>}),
-    ?assert(is_list(R)).
+    ?assertEqual("k", erlcfg_data:get('ami.xxx', C)).

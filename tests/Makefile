@@ -20,7 +20,7 @@ info:
 	@echo "Objects: $(FILES)"
 
 $(EBIN_DIR)/%.beam: %.erl
-	erlc $(ERLC_FLAGS) $<
+	@erlc $(ERLC_FLAGS) $< && echo "==> Compiled $<" || echo "==> Compilation of $< failed!"
 
 compile: $(OBJECTS)
 
