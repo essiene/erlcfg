@@ -197,7 +197,7 @@ parse_list_of_int_declaration_test() ->
 
 parse_list_of_int_declaration_with_default_test() ->
     Tokens = [{'[', 1}, {datatype, 1, string}, {']', 1}, {atom, 1, foo}, {'=',
-            1}, {'(', 1}, {string, 1, <<"2">>}, {',', 1}, {string, 1, <<"3">>}, {')', 1}, {';', 1}],
+            1}, {'[', 1}, {string, 1, <<"2">>}, {',', 1}, {string, 1, <<"3">>}, {']', 1}, {';', 1}],
     Result = erlcfg_schema_parser:parse(Tokens),
     Expected = {ok, [#declaration{type = #listof{type = string},
                       name = foo,

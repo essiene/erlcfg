@@ -14,7 +14,7 @@ common {
 }
 
 general {
-    [string] listen = ("0.0.0.0");
+    [string] listen = ["0.0.0.0"];
 
     int port {min=10, max=65535, default=1234};
 

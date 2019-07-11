@@ -42,7 +42,7 @@ elements element attributes attribute.
 
 Terminals
 keyword_type datatype integer float atom quoted_atom string bool var variable
-macro env '=' ';' '{' '}' '[' ']' '|' ',' '(' ')'.
+macro env '=' ';' '{' '}' '[' ']' '|' ','.
 
 Rootsymbol schema.
 
@@ -106,7 +106,7 @@ assignments -> assignment                : ['$1'].
 assignments -> assignment ',' assignments: ['$1' | '$3'].
 assignment  -> key '=' data              : {set, '$1', '$3'}.
 
-list        -> '(' elements ')'          : '$2'.
+list        -> '[' elements ']'          : '$2'.
 elements    -> element ',' elements      : {cons, '$1', '$3'}.
 elements    -> element                   : {cons, '$1', nil}.
 elements    -> '$empty'                  : nil.
