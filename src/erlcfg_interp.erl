@@ -42,9 +42,9 @@
 
 
 interpret(AstList) ->
-    interpret(AstList, []).
+    interpret(AstList, #{}).
 
-interpret(AstList, Macros) ->
+interpret(AstList, Macros) when is_map(Macros) ->
     {ok,Re} = re:compile(<<"\\{\\{([^}]+)\\}\\}">>, [ungreedy]),
     State   = #interp{node=erlcfg_node:new(), macros=Macros, macro_re=Re},
     Scope   = '',
@@ -61,12 +61,29 @@ interpret(Current, [Head|Rest], Scope, State0) ->
     State1 = eval(Current, Scope, State0),
     interpret(Head, Rest, Scope, State1).
 
+find_file(File, []) ->
+    case filelib:is_regular(File) of
+        true  -> File;
+        false -> throw({cannot_find_schema_file, File})
+    end;
+find_file(File, [Dir|T]) ->
+    Filename = filename:join(Dir, File),
+    case filelib:is_regular(Filename) of
+        true  -> Filename;
+        false -> find_file(File, T)
+    end.
 
-eval(#directive{name=schema, value=SchemaFile}, _Scope, #interp{schema_table=SchemaTable0}=State) ->
-    SchemaFile1 = binary_to_list(SchemaFile),
-    {ok, SchemaTable1} = erlcfg_schema:new(SchemaFile1),
+eval(#directive{name=schema, value=SchemaFile}, _Scope, #interp{macros=Macros,schema_table=SchemaTable0}=State) ->
+    Filename = maps:get(filename, Macros, undefined),
+    Dirs     = maps:get(dirs,     Macros, case Filename of
+                                            undefined -> [];
+                                            _         -> [filename:dirname(Filename)]
+                                          end),
+    SchemaFile1  = binary_to_list(SchemaFile),
+    File         = find_file(SchemaFile1, Dirs),
+    {ok, SchemaTable1} = erlcfg_schema:new(File),
     SchemaTable2 = erlcfg_schema:combine(SchemaTable0, SchemaTable1),
-    State#interp{schema_table=SchemaTable2};
+    State#interp{schema_table=SchemaTable2, schema_file=File};
 
 eval(#set{key=Key, value=Value}, Scope, #interp{}=State0) ->
     State1 = rhs(Value, State0),

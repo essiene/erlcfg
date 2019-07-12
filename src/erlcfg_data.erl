@@ -110,11 +110,11 @@ raw_get(Key) ->
         {not_found, MissingNode} ->
             {error, {not_found, MissingNode}};
         {value, Value} ->
-            THIS:prepare(Value)
+            prepare(Value)
     end.
 
 raw_get(Key, Default) ->
-    case THIS:raw_get(Key) of
+    case raw_get(Key) of
         {error, _Reason} ->
             Default;
         Value ->
@@ -128,31 +128,31 @@ exists(Key) ->
     end.
 
 get(Key, Default) ->
-    Val = THIS:raw_get(Key, Default),
+    Val = raw_get(Key, Default),
     find_and_convert_string(Val).
 
 get(Key) ->
-    Val = THIS:raw_get(Key),
+    Val = raw_get(Key),
     find_and_convert_string(Val).
 
 ensure_get(Key) ->
-    case THIS:get(Key) of
+    case get(Key) of
         {error, Reason} ->
             throw(Reason);
         Value ->
-            THIS:prepare(Value)
+            prepare(Value)
     end.
 
 %% @doc Split a subtree from the configuration tree.
 %% This function preserves the tree under the basename of `Key'.
 split(Key) ->
-    case THIS:get(Key) of
+    case get(Key) of
         {error, Reason} ->
             throw(Reason);
         {erlcfg_data, Value} ->
             K = erlcfg_node_addr:basename(Key),
             V = erlcfg_node:new(Value, K),
-            THIS:prepare(V)
+            prepare(V)
     end.
 
 keys() ->
@@ -198,7 +198,7 @@ prepare(Value) ->
 
 
 get_config(Key) ->
-    {erlcfg_data, {c, '', THIS:ensure_get(Key)}}.
+    {erlcfg_data, {c, '', ensure_get(Key)}}.
 
 find_and_convert_string(Value) when is_list(Value) ->
     find_and_convert_string(Value, []);
@@ -213,7 +213,7 @@ find_and_convert_string([Head|Rest], Acc) ->
     find_and_convert_string(Rest, [find_and_convert_string(Head) | Acc]).
     
 print() ->
-    THIS:print("").
+    print("").
 print(Prefix) ->
     KeyFun = fun(node, L)     -> string:join(lists:reverse([atom_to_list(I) || I <- L]), "/");
                 (value,[K|_]) -> atom_to_list(K)

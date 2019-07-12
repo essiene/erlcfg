@@ -56,7 +56,9 @@
         default=?ERLCFG_SCHEMA_NIL,
         min,
         max,
-        unique=true}).
+        unique=true,
+        nullable=false,
+        null}).
 
 -record(declaration, {
         type,

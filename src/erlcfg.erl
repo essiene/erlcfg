@@ -64,7 +64,8 @@ new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is
     new(FileName, Validate, MacrosMap);
 new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_map(Macros) ->
     {ok, Binary} = file:read_file(FileName),
-    new(Binary, Validate, Macros);
+    Defaults = #{dirs => [filename:dirname(FileName)]},
+    new(Binary, Validate, maps:merge(Defaults, Macros#{filename => FileName}));
 new(CfgData, Validate, Macros) when is_binary(CfgData), is_boolean(Validate), is_map(Macros) ->
     String = binary_to_list(CfgData),
     string(String, Validate, Macros).

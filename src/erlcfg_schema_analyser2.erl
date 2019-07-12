@@ -133,7 +133,7 @@ to_attrs(Type, Name, Attrs, Validator, Macros) ->
     lists:foldl(fun
         ({default, D}, R) ->
             Value0 = rhs(D, Type, Macros),
-            {ok, Default} = check_typeof_default(Value0, Validator),
+            {ok, Default} = check_typeof_default(Value0, Validator, R),
             R#attrs{default = Default};
         ({min, N}, R) when is_integer(N); is_float(N) ->
             R#attrs{min = N};
@@ -141,6 +141,10 @@ to_attrs(Type, Name, Attrs, Validator, Macros) ->
             R#attrs{max = N};
         ({unique, N}, R) when is_boolean(N) ->
             R#attrs{unique = N};
+        ({nullable, V}, R) when is_boolean(V) ->
+            R#attrs{nullable = V};
+        ({null, V}, R) ->
+            R#attrs{nullable = true, null = V};
         (Other, _R) ->
             throw({invalid_attribute, Name, Other})
     end, #attrs{}, Attrs).
@@ -161,15 +165,17 @@ check_has_known_type(DeclType, Types) ->
             {ok, Validator}
     end.
 
-check_typeof_default(?ERLCFG_SCHEMA_NIL, _Validator) ->
+check_typeof_default(?ERLCFG_SCHEMA_NIL, _Validator, _Attrs) ->
     {ok, ?ERLCFG_SCHEMA_NIL};
-check_typeof_default(#cons{}=Cons, Validator) ->
+check_typeof_default(#cons{}=Cons, Validator, Attrs) ->
     {ok, Cons0} = cons(Cons, []),
-    check_typeof_default(Cons0, Validator);
-check_typeof_default(Value, Validator) ->
+    check_typeof_default(Cons0, Validator, Attrs);
+check_typeof_default(Value, Validator, #attrs{nullable=Nullable, null=Null}) ->
     Fun = Validator#validator.test,
     case Fun(Value) of
         true ->
+            {ok, Value};
+        false when Nullable, Value =:= Null ->
             {ok, Value};
         false ->
             {error, 

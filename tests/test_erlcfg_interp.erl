@@ -5,10 +5,10 @@
 
 interp_set_test()  ->
     ?assertMatch(
-        {ok, #interp{node={c, '', [{d, foo, bar}]}, value=bar, schema_table=nil, macros=[]}},
+        {ok, #interp{node={c, '', [{d, foo, bar}]}, value=bar, schema_table=nil, macros=#{}}},
         erlcfg_interp:interpret([#set{key=foo, value=bar}])),
     ?assertMatch(
-        {ok, #interp{node={c, '', [{d, foo, bar}]}, value=bar, schema_table=nil, macros=[]}},
+        {ok, #interp{node={c, '', [{d, foo, bar}]}, value=bar, schema_table=nil, macros=#{}}},
         erlcfg_interp:interpret([{set, foo, bar}])).
 
 interp_set_nested_get_test()  ->

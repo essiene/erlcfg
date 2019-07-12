@@ -45,12 +45,16 @@
 
 
 new(FileName) ->
-    {ok, Binary} = file:read_file(FileName),
-    String = binary_to_list(Binary),
-    {ok, TokenList, _LineCount} = erlcfg_schema_lexer:string(String),
-    {ok, Ast} = erlcfg_schema_parser:parse(TokenList),
-    {ok, Types} = erlcfg_schema_analyser1:analyse(Ast),
-    {ok, erlcfg_schema_analyser2:analyse(Ast, Types)}.
+    case file:read_file(FileName) of
+        {ok, Binary} ->
+            String = binary_to_list(Binary),
+            {ok, TokenList, _LineCount} = erlcfg_schema_lexer:string(String),
+            {ok, Ast} = erlcfg_schema_parser:parse(TokenList),
+            {ok, Types} = erlcfg_schema_analyser1:analyse(Ast),
+            {ok, erlcfg_schema_analyser2:analyse(Ast, Types)};
+        {error, Reason} ->
+            throw({cannot_find_schema, FileName, file:get_cwd(), Reason})
+    end.
 
 combine(nil, nil) ->
     [];
@@ -110,24 +114,30 @@ validate3(Key, _D = #declaration{type=Tp, attrs=Attrs, validator=Val}, Config) -
     true ->
         ok
     end,
-    validate_type(Key, V, Val, Config).
+    validate_type(Key, V, Val, Config, Attrs).
 
-validate_type(Key, Value, Validator, Config) when is_tuple(Config), element(1,Config)==erlcfg_data ->
-    Test = Validator#validator.test,
+validate_type(Key, Value, Validator, {erlcfg_data, _} = Config,
+              #attrs{nullable=Nullable, null=Null}) ->
+    Test   = Validator#validator.test,
+    Create = fun() ->
+                case erlcfg_data:create(Key, Value, Config) of
+                    {error, Reason} ->
+                        throw(Reason);
+                    Config1 -> 
+                        {ok, Config1}
+                end
+             end,
     case Test(Value) of
+        false when Nullable, Value=:=Null ->
+            {ok, Config};  %% Don't create nullable values
+        true ->
+            Create();
         false ->
             throw([
                     {node, Key}, 
                     {expected_type, Validator#validator.type}, 
                     {value, Value}
-                  ]);
-        true ->
-            case Config:create(Key, Value) of
-                {error, Reason} ->
-                    throw(Reason);
-                Config1 -> 
-                    {ok, Config1}
-            end
+                  ])
     end.
 
 

@@ -48,6 +48,7 @@
         node,
         value=nil,
         schema_table=nil,
+        schema_file,
         macro_re,
         macros=[]}).
 
