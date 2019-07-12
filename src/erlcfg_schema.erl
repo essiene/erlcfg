@@ -38,22 +38,37 @@
 -module(erlcfg_schema).
 -export([
         new/1,
+        string/2,
         combine/2,
         validate/2
     ]).
 -include("schema.hrl").
 
 
-new(FileName) ->
+new(FileName) when is_list(FileName) ->
     case file:read_file(FileName) of
         {ok, Binary} ->
-            String = binary_to_list(Binary),
-            {ok, TokenList, _LineCount} = erlcfg_schema_lexer:string(String),
-            {ok, Ast} = erlcfg_schema_parser:parse(TokenList),
-            {ok, Types} = erlcfg_schema_analyser1:analyse(Ast),
-            {ok, erlcfg_schema_analyser2:analyse(Ast, Types)};
+            string(binary_to_list(Binary), FileName);
         {error, Reason} ->
             throw({cannot_find_schema, FileName, file:get_cwd(), Reason})
+    end.
+
+string(String, Filename) when is_list(String) ->
+    case erlcfg_schema_lexer:string(String) of
+        {ok, TokenList, _LineCount} ->
+            case erlcfg_schema_parser:parse(TokenList) of
+                {ok, Ast} ->
+                    case erlcfg_schema_analyser1:analyse(Ast) of
+                        {ok, Types} ->
+                            {ok, erlcfg_schema_analyser2:analyse(Ast, Types)};
+                        E3 ->
+                            throw({schema_error, analyse, Filename, E3})
+                    end;
+                E2 ->
+                    throw({schema_error, parser, Filename, E2})
+            end;
+        E1 ->
+            throw({schema_error, lexer, Filename, E1})
     end.
 
 combine(nil, nil) ->
@@ -88,8 +103,10 @@ validate2(SchemaTable, Config) when is_map(SchemaTable) ->
         fun(Key, Info, {ok, Cfg}) -> validate3(Key, Info, Cfg) end,
         {ok, Config}, SchemaTable).
 
-validate3(Key, _D = #declaration{type=Tp, attrs=Attrs, validator=Val}, Config) ->
+validate3(Key, _D = #declaration{type=Tp, attrs=Attrs = #attrs{nullable=Nullable, null=Null}, validator=Val}, Config) ->
     V = case erlcfg_data:raw_get(Key, Config) of
+        {error, _} when Nullable ->
+            Null;
         {error, _} ->
             case ensure_raw_default(Tp, Attrs#attrs.default) of
                 ?ERLCFG_SCHEMA_NIL ->
@@ -129,7 +146,7 @@ validate_type(Key, Value, Validator, {erlcfg_data, _} = Config,
              end,
     case Test(Value) of
         false when Nullable, Value=:=Null ->
-            {ok, Config};  %% Don't create nullable values
+            Create();  %% Populate nullable values
         true ->
             Create();
         false ->
