@@ -100,11 +100,9 @@ set(Key, Value) ->
 
 %% @doc Set `Value' of `Key' if the `Key' is not found in config
 set_default(Key, Value) ->
-    case erlcfg_node:if_node_found(Node, Key, fun(_) -> Node end) of
-        {not_found, _MissingNode} ->
+    case erlcfg_node:raw_get(Node, Key) of
+        {error, _Reason} ->
             set(Key, Value);
-        {error, Reason} ->
-            {error, Reason};
         _Tree ->
             THIS
     end.
