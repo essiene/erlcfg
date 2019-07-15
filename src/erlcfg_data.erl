@@ -61,7 +61,11 @@
         print/0,
         print/1,
         print/2,
-        walk/1,
+        to_string/0,
+        to_string/1,
+        to_string/2,
+        foreach/1,
+        fold/2,
         set_app_env/0,
         set_app_env/1,
         set_app_env/2,
@@ -200,10 +204,10 @@ prepare(Value) ->
 get_config(Key) ->
     {erlcfg_data, {c, '', ensure_get(Key)}}.
 
-find_and_convert_string(Value) when is_list(Value) ->
-    find_and_convert_string(Value, []);
 find_and_convert_string(Value) when is_binary(Value) -> 
     binary_to_list(Value);
+find_and_convert_string(Value) when is_list(Value) ->
+    find_and_convert_string(Value, []);
 find_and_convert_string(Value) ->
     Value.
 
@@ -212,31 +216,56 @@ find_and_convert_string([], Acc) ->
 find_and_convert_string([Head|Rest], Acc) ->
     find_and_convert_string(Rest, [find_and_convert_string(Head) | Acc]).
     
-print() ->
-    print("").
-print(Prefix) ->
-    KeyFun = fun(node, L)     -> string:join(lists:reverse([atom_to_list(I) || I <- L]), "/");
+print()                                               -> print("").
+print(Prefix)                                         -> print(Prefix, "/").
+print(Prefix, PathSep)     when is_list(PathSep)      -> to_string_impl(Prefix, PathSep, ok);
+print(Prefix, KeyFun)      when is_function(KeyFun,2) -> to_string_impl(Prefix, KeyFun,  ok).
+
+to_string()                                           -> to_string("").
+to_string(Prefix)                                     -> to_string(Prefix, "/").
+to_string(Prefix, PathSep) when is_list(PathSep)      -> to_string_impl(Prefix, PathSep, []);
+to_string(Prefix, KeyFun)  when is_function(KeyFun,2) -> to_string_impl(Prefix, KeyFun,  []).
+
+to_string_impl(Prefix, PathSep, Acc) when is_list(PathSep) ->
+    KeyFun = fun(node, L)     -> string:join(lists:reverse([atom_to_list(I) || I <- L]), PathSep);
                 (value,[K|_]) -> atom_to_list(K)
              end,
-    print(Prefix, KeyFun).
-print(Prefix, KeyFun) ->
-    Fun = fun(node,     Indent,RevPath) ->
+    to_string_impl(Prefix, KeyFun, Acc);
+to_string_impl(Prefix, KeyFun, Acc0) when is_function(KeyFun, 2) ->
+    Fun = fun
+            ({node,     Indent,RevPath},_Acc) when not is_list(Acc0) ->
                 io:format("~s~*c/~s\n",     [Prefix, Indent*2, $\s, KeyFun(node, RevPath)]);
-             ({value,V},Indent,RevPath) ->
-                io:format("~s~*c~s = ~p\n", [Prefix, Indent*2, $\s, KeyFun(value,RevPath),V])
+            ({node,     Indent,RevPath}, Acc) when is_list(Acc0) ->
+                [io_lib:format("~s~*c/~s\n",[Prefix, Indent*2, $\s, KeyFun(node, RevPath)]) | Acc];
+            ({{value,V},Indent,RevPath},_Acc) when not is_list(Acc0) ->
+                io:format("~s~*c~s = ~p\n", [Prefix, Indent*2, $\s, KeyFun(value,RevPath),V]);
+            ({{value,V},Indent,RevPath}, Acc) when is_list(Acc0) ->
+                [io_lib:format("~s~*c~s = ~p\n", [Prefix, Indent*2, $\s, KeyFun(value,RevPath),V]) | Acc]
           end,
-    walk(Fun).
+    fold(Fun, Acc0).
 
-walk(Fun) ->
-    walk(Node, 0, [], Fun).
+foreach(Fun) when is_function(Fun, 1) ->
+    foreach(Node, 0, [], Fun).
 
-walk({c,_,[]},_,_,_)   -> ok;
-walk({c,_N,L},Indent,RevPath,Fun) ->
-    Fun(node, Indent,RevPath),
-    [walk(II,Indent+1,[element(2,II)|RevPath],Fun) || II <- L],
-    ok;
-walk({d,_K,V},Indent,RevPath,Fun) ->
-    Fun({value, V}, Indent, RevPath).
+foreach({d,_K,V},Indent,RevPath,Fun) ->
+    Fun({{value, find_and_convert_string(V)}, Indent, RevPath});
+foreach({c,_N,L},Indent,RevPath,Fun) ->
+    Fun({node, Indent,RevPath}),
+    lists:foreach(fun(II) -> foreach(II,Indent+1,[element(2,II)|RevPath],Fun) end, L).
+
+fold(Fun, Acc) when is_function(Fun, 2), is_list(Acc) ->
+    lists:reverse(foldl(Node, 0, [], Fun, Acc));
+fold(Fun, Acc) when is_function(Fun, 2) ->
+    foldl(Node, 0, [], Fun, Acc).
+
+foldl({d,_K,V},Indent,RevPath,Fun, Acc) ->
+    Fun({{value, find_and_convert_string(V)}, Indent, RevPath}, Acc);
+foldl({c,_N, L},Indent,RevPath,Fun,Acc) when is_list(Acc) ->
+    Acc1 = Fun({node, Indent,RevPath}, Acc),
+    [lists:reverse(lists:foldl(fun(II, A) -> foldl(II,Indent+1,[element(2,II)|RevPath],Fun,A) end, [], L)) | Acc1];
+foldl({c,_N, L},Indent,RevPath,Fun,Acc) ->
+    Acc1 = Fun({node, Indent,RevPath}, Acc),
+    lists:foldl(fun(II, A) -> foldl(II,Indent+1,[element(2,II)|RevPath],Fun,A) end, Acc1, L).
 
 set_app_env()    -> set_app_env(application:get_application()).
 set_app_env(App) -> set_app_env(App, []).
@@ -244,8 +273,8 @@ set_app_env(App, RemoveKeyPrefix) -> set_app_env(App, RemoveKeyPrefix, undefined
 set_app_env(App, RemoveKeyPrefix, Filter) when [] == RemoveKeyPrefix
                                              ; is_list(RemoveKeyPrefix)
                                              , is_atom(hd(RemoveKeyPrefix)) ->
-    Fun = fun(node,     _Indent,_RevPath) -> ok;
-             ({value,V},_Indent, RevPath) ->
+    Fun = fun({node,     _Indent,_RevPath}) -> ok;
+             ({{value,V},_Indent, RevPath}) ->
               Path = remove_key_prefix(lists:reverse(RevPath), RemoveKeyPrefix),
               case Filter==undefined orelse Filter(RevPath) of
                   true ->
@@ -257,7 +286,7 @@ set_app_env(App, RemoveKeyPrefix, Filter) when [] == RemoveKeyPrefix
                       ok
               end
           end,
-    walk(Fun).
+    foreach(Fun).
 
 remove_key_prefix([], _) -> [];
 remove_key_prefix(L, []) -> L;

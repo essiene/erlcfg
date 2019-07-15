@@ -125,6 +125,20 @@ get_set_def_value_test() ->
     C2 = C1:set_default(list, [a]),
     ?assertEqual([a], C2:get(list)).
 
+to_string_tree_test() ->
+    Data = {c, '', [
+        {d, int, 5}, 
+        {c, 'b', [{d, atom, baz}, {d, x, 10}]}, 
+        {d, string, <<"A string">>}
+    ]},
+    S = lists:flatten(erlcfg_data:to_string(erlcfg_data:new(Data))),
+    ?assertEqual("/\n"
+                 "  int = 5\n"
+                 "  /b\n"
+                 "    atom = baz\n"
+                 "    x = 10\n"
+                 "  string = \"A string\"\n", S),
+    erlcfg_data:print(erlcfg_data:new(Data)).
 
 get_twolevels_test() ->
     Data = {c, '', [
