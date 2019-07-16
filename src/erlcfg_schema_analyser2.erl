@@ -141,10 +141,10 @@ to_attrs(Type, Name, Attrs, Validator, Macros) ->
             R#attrs{max = N};
         ({unique, N}, R) when is_boolean(N) ->
             R#attrs{unique = N};
-        ({nullable, V}, R) when is_boolean(V) ->
-            R#attrs{nullable = V};
+        ({optional, V}, R) when is_boolean(V) ->
+            R#attrs{optional = V};
         ({null, V}, R) ->
-            R#attrs{nullable = true, null = V};
+            R#attrs{optional = true, null = V};
         (Other, _R) ->
             throw({invalid_attribute, Name, Other})
     end, #attrs{}, Attrs).
@@ -170,12 +170,12 @@ check_typeof_default(?ERLCFG_SCHEMA_NIL, _Validator, _Attrs) ->
 check_typeof_default(#cons{}=Cons, Validator, Attrs) ->
     {ok, Cons0} = cons(Cons, []),
     check_typeof_default(Cons0, Validator, Attrs);
-check_typeof_default(Value, Validator, #attrs{nullable=Nullable, null=Null}) ->
+check_typeof_default(Value, Validator, #attrs{optional=Optional, null=Null}) ->
     Fun = Validator#validator.test,
     case Fun(Value) of
         true ->
             {ok, Value};
-        false when Nullable, Value =:= Null ->
+        false when Optional, Value =:= Null ->
             {ok, Value};
         false ->
             {error, 

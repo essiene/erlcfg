@@ -103,9 +103,9 @@ validate2(SchemaTable, Config) when is_map(SchemaTable) ->
         fun(Key, Info, {ok, Cfg}) -> validate3(Key, Info, Cfg) end,
         {ok, Config}, SchemaTable).
 
-validate3(Key, _D = #declaration{type=Tp, attrs=Attrs = #attrs{nullable=Nullable, null=Null}, validator=Val}, Config) ->
+validate3(Key, _D = #declaration{type=Tp, attrs=Attrs = #attrs{optional=Optional, null=Null}, validator=Val}, Config) ->
     V = case erlcfg_data:raw_get(Key, Config) of
-        {error, _} when Nullable ->
+        {error, _} when Optional ->
             Null;
         {error, _} ->
             case ensure_raw_default(Tp, Attrs#attrs.default) of
@@ -134,7 +134,7 @@ validate3(Key, _D = #declaration{type=Tp, attrs=Attrs = #attrs{nullable=Nullable
     validate_type(Key, V, Val, Config, Attrs).
 
 validate_type(Key, Value, Validator, {erlcfg_data, _} = Config,
-              #attrs{nullable=Nullable, null=Null}) ->
+              #attrs{optional=Optional, null=Null}) ->
     Test   = Validator#validator.test,
     Create = fun() ->
                 case erlcfg_data:create(Key, Value, Config) of
@@ -145,8 +145,8 @@ validate_type(Key, Value, Validator, {erlcfg_data, _} = Config,
                 end
              end,
     case Test(Value) of
-        false when Nullable, Value=:=Null ->
-            Create();  %% Populate nullable values
+        false when Optional, Value=:=Null ->
+            Create();  %% Populate optional values
         true ->
             Create();
         false ->

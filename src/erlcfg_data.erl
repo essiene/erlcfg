@@ -100,10 +100,12 @@ set(Key, Value) ->
 
 %% @doc Set `Value' of `Key' if the `Key' is not found in config
 set_default(Key, Value) ->
-    case erlcfg_node:raw_get(Node, Key) of
-        {error, _Reason} ->
+    case erlcfg_node:get(Node, Key) of
+        {not_found, _MissingNode} ->
             set(Key, Value);
-        _Tree ->
+        {value, undefined} ->
+            set(Key, Value);
+        {value, _} ->
             THIS
     end.
 
@@ -267,23 +269,23 @@ foldl({c,_N, L},Indent,RevPath,Fun,Acc) ->
 
 set_app_env()    -> set_app_env(application:get_application()).
 set_app_env(App) -> set_app_env(App, []).
-set_app_env(App, RemoveKeyPrefix) -> set_app_env(App, RemoveKeyPrefix, undefined).
-set_app_env(App, RemoveKeyPrefix, Filter) when [] == RemoveKeyPrefix
-                                             ; is_list(RemoveKeyPrefix)
-                                             , is_atom(hd(RemoveKeyPrefix)) ->
-    Fun = fun({node,     _Indent,_RevPath}) -> ok;
-             ({{value,V},_Indent, RevPath}) ->
-              Path = remove_key_prefix(lists:reverse(RevPath), RemoveKeyPrefix),
-              case Filter==undefined orelse Filter(RevPath) of
-                  true ->
-                      application:set_env(
-                          App,
-                          list_to_atom(string:join([atom_to_list(I) || I <- Path], ".")),
-                          V);
-                  false ->
-                      ok
-              end
-          end,
+set_app_env(App, RemoveKeyPfx) when is_list(RemoveKeyPfx) -> set_app_env(App, RemoveKeyPfx, undefined).
+set_app_env(App, RemoveKeyPfx, Filter) when [] == RemoveKeyPfx
+                                          ; is_list(RemoveKeyPfx)
+                                          , is_atom(hd(RemoveKeyPfx)) ->
+    Fun = fun
+        ({node,             _Indent,_RevPath}) -> ok;
+        ({{value,undefined},_Indent,_RevPath}) -> ok;
+        ({{value,V},_Indent, RevPath}) ->
+            Path = remove_key_prefix(lists:reverse(RevPath), RemoveKeyPfx),
+            case Filter==undefined orelse Filter(RevPath) of
+                true ->
+                    Key = list_to_atom(string:join([atom_to_list(I) || I <- Path], ".")),
+                    application:set_env(App, Key, V);
+                false ->
+                    ok
+            end
+    end,
     foreach(Fun).
 
 remove_key_prefix([], _) -> [];

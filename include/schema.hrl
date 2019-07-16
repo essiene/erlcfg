@@ -57,7 +57,7 @@
         min,
         max,
         unique=true,
-        nullable=false,
+        optional=false,
         null}).
 
 -record(declaration, {
