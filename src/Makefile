@@ -29,7 +29,7 @@ OBJECTS=erlcfg_lexer \
 		erlcfg_parser \
 		erlcfg_schema_lexer \
 		erlcfg_schema_parser \
-		node_addr \
+		erlcfg_node_addr \
 		erlcfg_node \
 		erlcfg_interp \
 		erlcfg_schema_analyser1\

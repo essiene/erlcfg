@@ -161,8 +161,8 @@ node_find2_twolevels_test() ->
             ]
         }
     ]},
-    ?assertEqual({d, int, 5}, erlcfg_node:node_find(Data, foo.int)),
-    ?assertEqual({d, float, 5.0}, erlcfg_node:node_find(Data, foo.float)).
+    ?assertEqual({d, int, 5}, erlcfg_node:node_find(Data, 'foo.int')),
+    ?assertEqual({d, float, 5.0}, erlcfg_node:node_find(Data, 'foo.float')).
 
 node_find2_multi_level_nested_test() ->
     Data = {c, '', [
@@ -200,12 +200,12 @@ node_find2_multi_level_nested_test() ->
 
     ]},
 
-    ?assertEqual({d, one, 11}, erlcfg_node:node_find(Data, one.one)),
-    ?assertEqual({d, two, 12}, erlcfg_node:node_find(Data, one.two)),
-    ?assertEqual({d, one, 131}, erlcfg_node:node_find(Data, one.three.one)),
-    ?assertEqual({d, two, 132}, erlcfg_node:node_find(Data, one.three.two)),
+    ?assertEqual({d, one, 11}, erlcfg_node:node_find(Data, 'one.one')),
+    ?assertEqual({d, two, 12}, erlcfg_node:node_find(Data, 'one.two')),
+    ?assertEqual({d, one, 131}, erlcfg_node:node_find(Data, 'one.three.one')),
+    ?assertEqual({d, two, 132}, erlcfg_node:node_find(Data, 'one.three.two')),
 
-    ?assertEqual({d, one, 211}, erlcfg_node:node_find(Data, two.one.one)),
-    ?assertEqual({d, two, 212}, erlcfg_node:node_find(Data, two.one.two)),
-    ?assertEqual({d, one, 221}, erlcfg_node:node_find(Data, two.two.one)),
-    ?assertEqual({d, two, 222}, erlcfg_node:node_find(Data, two.two.two)).
+    ?assertEqual({d, one, 211}, erlcfg_node:node_find(Data, 'two.one.one')),
+    ?assertEqual({d, two, 212}, erlcfg_node:node_find(Data, 'two.one.two')),
+    ?assertEqual({d, one, 221}, erlcfg_node:node_find(Data, 'two.two.one')),
+    ?assertEqual({d, two, 222}, erlcfg_node:node_find(Data, 'two.two.two')).

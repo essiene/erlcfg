@@ -116,12 +116,13 @@ string_with_spaces_test() ->
         erlcfg_lexer:string("\"foo with bar\" \"with a\ttab\" \"and \na \nnew line\"")).
 
 single_variable_test() ->
-    ?assertEqual({ok, [{variable, 1, common.one}], 1}, erlcfg_lexer:string("$common.one")),
-    ?assertEqual({ok, [{variable, 1, foo.bar}], 1}, erlcfg_lexer:string("$foo.bar")).
+    ?assertEqual({ok, [{variable, 1, 'common.one'}], 1}, erlcfg_lexer:string("$common.one")),
+    ?assertEqual({ok, [{variable, 1, 'foo.bar'}], 1}, erlcfg_lexer:string("$foo.bar")).
 
 multiple_variable_test() ->
-    ?assertEqual({ok, [{variable, 1, foo.one}, {variable, 1, foo.two}, {variable, 1, foo.three}], 1}, erlcfg_lexer:string("$foo.one $foo.two $foo.three")),
-    ?assertEqual({ok, [{variable, 1, moo}, {variable, 1, one.two.three.four}, {variable, 1, 'foobar_.baz-bar'}], 1}, erlcfg_lexer:string("$moo $one.two.three.four $foobar_.baz-bar")).
+    ?assertEqual({ok, [{variable, 1, 'foo.one'}, {variable, 1, 'foo.two'}, {variable, 1,
+        'foo.three'}], 1}, erlcfg_lexer:string("$foo.one $foo.two $foo.three")),
+    ?assertEqual({ok, [{variable, 1, moo}, {variable, 1, 'one.two.three.four'}, {variable, 1, 'foobar_.baz-bar'}], 1}, erlcfg_lexer:string("$moo $one.two.three.four $foobar_.baz-bar")).
 
 
 spaces() -> 

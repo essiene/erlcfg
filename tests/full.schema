@@ -2,11 +2,21 @@ type Priority = high | medium | low;
 #type PortValues = [0 to 50] | [100 to 500];
 
 Priority foo;
+Priority bar = low;
+Priority yyy = low;
+
+common {
+    string appserver;
+    port {
+        int ami;
+        int rest;
+    }
+}
 
 general {
-    [string] listen = ("0.0.0.0");
+    [string] listen = ["0.0.0.0"];
 
-    int port;
+    int port {min=10, max=65535, default=1234};
 
     wait {
         int short;
@@ -17,8 +27,12 @@ general {
 ami {
     string host;
     int port = 5238;
+    string home = "";
+    string xxx  = "";
     string username;
     string secret;
+    string date = "";
+    string path = ${HOME};
 }
 
 callentry {

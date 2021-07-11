@@ -39,26 +39,53 @@
 -export([
         new/0,
         new/1,
-        new/2
+        new/2,
+        new/3,
+        string/1,
+        string/2,
+        string/3,
+        join_paths/1,
+        join_paths/2
     ]).
 -include("erlcfg.hrl").
+
+-type config() :: {erlcfg_data, tuple()}.
+
+-export_type([config/0]).
 
 new() ->
     {ok, erlcfg_data:new(erlcfg_node:new())}.
 
-new(FileName) ->
-    new(FileName, false).
+new(FileName)                 -> new(FileName, false, #{}).
+new(FileName, ValidateSchema) -> new(FileName, ValidateSchema, #{}).
 
-new(FileName, ValidateSchema) ->
+new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_list(Macros) ->
+    MacrosMap = maps:from_list(Macros),
+    new(FileName, Validate, MacrosMap);
+new(FileName, Validate, Macros) when is_list(FileName), is_boolean(Validate), is_map(Macros) ->
     {ok, Binary} = file:read_file(FileName),
-    String = binary_to_list(Binary),
+    Defaults = #{dirs => [filename:dirname(FileName)]},
+    new(Binary, Validate, maps:merge(Defaults, Macros#{filename => FileName}));
+new(CfgData, Validate, Macros) when is_binary(CfgData), is_boolean(Validate), is_map(Macros) ->
+    String = binary_to_list(CfgData),
+    string(String, Validate, Macros).
+
+string(String)           -> string(String, false,    #{}).
+string(String, Validate) -> string(String, Validate, #{}).
+
+string(String, Validate, Macros) when is_list(String), is_boolean(Validate), is_map(Macros) ->
     {ok, TokenList, _LineCount} = erlcfg_lexer:string(String),
     {ok, Ast} = erlcfg_parser:parse(TokenList),
-    {ok, InterpState} = erlcfg_interp:interpret(Ast),
-    Unvalidated = erlcfg_data:new(InterpState#interp.node),
-    case ValidateSchema of
-        false ->
-            {ok, Unvalidated};
-        true ->
-            erlcfg_schema:validate(InterpState#interp.schema_table, Unvalidated)
-    end.
+    {ok, #interp{schema_table=Schema, node=Node}} = erlcfg_interp:interpret(Ast, Macros),
+    validate(Validate, Schema, erlcfg_data:new(Node)).
+
+validate(false, _Schema, Unvalidated) ->
+    {ok, Unvalidated};
+validate(true,  Schema, Unvalidated) ->
+    erlcfg_schema:validate(Schema, Unvalidated).
+
+join_paths(Top, Child) when is_atom(Top), is_atom(Child) ->
+    join_paths([Top, Child]).
+
+join_paths(List) when is_list(List) ->
+    erlcfg_node_addr:join(List).

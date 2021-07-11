@@ -36,10 +36,13 @@
 %% 
 
 Nonterminals
-schema items item typedef typedef_options data block block_contents block_data declaration type_signature list elements element.
+schema items item assignments assignment typedef typedef_options key data
+block block_contents block_data declaration fun_args type_signature list
+elements element attributes attribute.
 
 Terminals
-keyword_type datatype integer float atom quoted_atom string bool '=' ';' '{' '}' '[' ']' '|' ',' '(' ')'.
+keyword_type datatype integer float atom quoted_atom string bool var variable
+macro env '=' ';' '{' '}' '[' ']' '|' ','.
 
 Rootsymbol schema.
 
@@ -54,16 +57,23 @@ item -> block : '$1'.
 item -> declaration : '$1'.
 
 typedef -> keyword_type atom '=' typedef_options ';' : {typedef, get_value('$2'), '$4'}.
+
 block -> atom '{' block_contents '}' : {block, get_value('$1'), '$3'}.
 block -> atom '{' '}' : {block, get_value('$1'), []}.
-declaration -> type_signature atom ';' : {declaration, '$1', get_value('$2'), ?ERLCFG_SCHEMA_NIL}.
-declaration -> type_signature atom '=' data ';' : {declaration, '$1', get_value('$2'), '$4'}.
+declaration -> type_signature atom ';' : #declaration{type='$1', name=get_value('$2'), attrs=[]}.
+declaration -> type_signature atom '=' data ';' : #declaration{type='$1', name=get_value('$2'), attrs=[{default,'$4'}]}.
+declaration -> type_signature atom '{' attributes '}' ';' : #declaration{type='$1', name=get_value('$2'), attrs='$4'}.
 
 block_contents -> block_data : ['$1'].
 block_contents -> block_data block_contents : ['$1' | '$2'].
 
 block_data -> block : '$1'.
 block_data -> declaration : '$1'.
+
+attributes -> attribute : ['$1'].
+attributes -> attribute ',' attributes : ['$1' | '$3'].
+
+attribute  -> atom '=' data : {get_value('$1'), '$3'}.
 
 typedef_options -> data : {cons, '$1', nil}.
 typedef_options -> data '|' typedef_options : {cons, '$1', '$3'}.
@@ -72,19 +82,35 @@ type_signature -> datatype : get_value('$1').
 type_signature -> atom : get_value('$1').
 type_signature -> '[' type_signature ']' : list_of_type('$2').
 
-data -> list       : '$1'.
-data -> integer    : get_value('$1').
-data -> float      : get_value('$1').
-data -> atom       : get_value('$1').
-data -> quoted_atom: get_value('$1').
-data -> string     : get_value('$1').
-data -> bool       : get_value('$1').
+key            -> atom                   : get_value('$1').
 
-list -> '(' elements ')' : '$2'.
-elements -> element ',' elements    : {cons, '$1', '$3'}.
-elements -> element     : {cons, '$1', nil}.
-elements -> '$empty' : nil.
-element -> data : '$1'.
+data -> list                             : '$1'.
+data -> integer                          : get_value('$1').
+data -> float                            : get_value('$1').
+data -> atom                             : get_value('$1').
+data -> quoted_atom                      : get_value('$1').
+data -> string                           : get_value('$1').
+data -> bool                             : get_value('$1').
+data -> macro                            : {macro, get_value('$1')}.
+data -> env                              : {env,   get_value('$1')}.
+data -> variable '{' fun_args '}' :
+                     {func, list_to_atom(atom_to_list(get_value('$1'))),
+                            element(1, '$3'), element(2, '$3')}.
+
+fun_args  -> var                         : {list_to_atom(get_value('$1')), []}.
+fun_args  -> string                      : {get_value('$1'), []}.
+fun_args  -> var    ',' assignments      : {list_to_atom(get_value('$1')), '$3'}.
+fun_args  -> string ',' assignments      : {get_value('$1'), '$3'}.
+
+assignments -> assignment                : ['$1'].
+assignments -> assignment ',' assignments: ['$1' | '$3'].
+assignment  -> key '=' data              : {set, '$1', '$3'}.
+
+list        -> '[' elements ']'          : '$2'.
+elements    -> element ',' elements      : {cons, '$1', '$3'}.
+elements    -> element                   : {cons, '$1', nil}.
+elements    -> '$empty'                  : nil.
+element     -> data                      : '$1'.
 
 Erlang code.
 %nothing

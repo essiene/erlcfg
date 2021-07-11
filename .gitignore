@@ -1,7 +1,15 @@
 ebin
 *.beam
+*.pdb
+*.json
+c_src/erlcfg_util.o*
 src/*_lexer.erl
 src/*_parser.erl
+.rebar
+.rebar3
+deps
+priv/*.exp
+priv/*.lib
 diff
 commit
 erl_crash.dump
@@ -10,3 +18,4 @@ erl_crash.dump
 *.bz2
 *.rpm
 erlcfg-*/
+.eunit

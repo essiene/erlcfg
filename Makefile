@@ -4,21 +4,33 @@ ERL_LIB=/usr/lib/erlang/lib
 EBIN_DIR=ebin
 INCLUDE_DIR=include
 SRC_DIR=src
+UNAME=$(shell uname -o)
+
+ifeq ($(UNAME),Cygwin)
+	EXT=.cmd
+else ifeq ($(UNAME),Msys)
+  EXT=.cmd
+else
+  EXT=
+endif
+
+REBAR=rebar$(EXT)
 
 all: 
-	@cd src;make
-	@echo All Done
+	@[ ! -d deps ] && $(REBAR) get-deps || true
+	$(REBAR) compile
+
+eunit:
+	@rebar eunit $(if $(suite),suite=$(suite))
 
 test: all
-	@cd tests;make
+	@cd tests;make test $(if $(suite),suite=$(suite))
 	@echo Tests Done
 
 clean:
-	@cd src;make clean
-	@cd tests;make clean
-	@rm -rf ebin
-	@rm -f erl_crash.dump
-	@rm -f *.tar.gz
+	@make -C src clean --no-print-directory
+	@make -C tests clean --no-print-directory
+	@rm -rf ebin .eunit .rebar erl_crash.dump *.tar.gz c_src/*.o priv/*.{exp,lib} compile_commands.json *.pdb
 	@rm -rf $(NAME)-$(VERSION)
 
 install: all

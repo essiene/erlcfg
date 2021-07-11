@@ -76,9 +76,9 @@ parse_string_assignment_test() ->
     ?assertEqual(Expected, Result).
 
 parse_variable_assignment_test() ->
-    Tokens = [{atom, 1, foo}, {'=', 1}, {variable, 1, foo.bar}, {';', 1}],
+    Tokens = [{atom, 1, foo}, {'=', 1}, {variable, 1, 'foo.bar'}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
-    Expected = {ok, [{set, foo, {get, foo.bar}}]},
+    Expected = {ok, [{set, foo, {get, 'foo.bar'}}]},
     ?assertEqual(Expected, Result).
 
 parse_single_block_assignment_test() ->
@@ -88,7 +88,7 @@ parse_single_block_assignment_test() ->
     ?assertEqual(Expected, Result).
 
 parse_empty_list_assignment_test() ->
-    Tokens = [{atom, 1, foo}, {'=', 1}, {'(', 1}, {')', 1}, {';', 1}],
+    Tokens = [{atom, 1, foo}, {'=', 1}, {'[', 1}, {']', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
     Expected = {ok, [{set, foo, {list, nil}}]},
     ?assertEqual(Expected, Result).
@@ -100,14 +100,14 @@ parse_single_directive_test() ->
     ?assertEqual(Expected, Result).
 
 parse_single_value_list_assignment_test() ->
-    Tokens = [{atom, 1, foo}, {'=', 1}, {'(', 1}, {atom, 1, bar}, {')', 1}, {';', 1}],
+    Tokens = [{atom, 1, foo}, {'=', 1}, {'[', 1}, {atom, 1, bar}, {']', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
     Expected = {ok, [{set, foo, {list, {cons, bar, nil}}}]},
     ?assertEqual(Expected, Result).
 
 parse_multiple_value_list_assignment_test() ->
     Tokens = [{atom, 1, foo}, {'=', 1}, 
-        {'(', 1}, 
+        {'[', 1}, 
             {atom, 1, bar}, 
             {',', 1},
             {integer, 1, 5},
@@ -115,7 +115,7 @@ parse_multiple_value_list_assignment_test() ->
             {float, 1, 0.59},
             {',', 1},
             {string, 1, <<"A String">>},
-        {')', 1}, {';', 1}],
+        {']', 1}, {';', 1}],
     Result = erlcfg_parser:parse(Tokens),
     Expected = {ok, [{set, foo, {list, {cons, bar, {cons, 5, {cons, 0.59, {cons, <<"A String">>, nil}}}}}}]},
     ?assertEqual(Expected, Result).
@@ -149,7 +149,7 @@ parse_mixed_assignment_test() ->
         {atom, 1, foo}, {'=', 1}, {float, 1, -51.0e-10}, {';', 1},
         {atom, 1, foo}, {'=', 1}, {atom, 1, foo51}, {';', 1},
         {atom, 1, foo}, {'=', 1}, {string, 1, <<"A String">>}, {';', 1},
-        {atom, 1, foo}, {'=', 1}, {variable, 1, foo.bar}, {';', 1}
+        {atom, 1, foo}, {'=', 1}, {variable, 1, 'foo.bar'}, {';', 1}
     ],
     Result = erlcfg_parser:parse(Tokens),
     Expected = {ok, [
@@ -158,5 +158,5 @@ parse_mixed_assignment_test() ->
             {set, foo, -51.0e-10},
             {set, foo, foo51}, 
             {set, foo, <<"A String">>}, 
-            {set, foo, {get, foo.bar}}]},
+            {set, foo, {get, 'foo.bar'}}]},
     ?assertEqual(Expected, Result).

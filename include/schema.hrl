@@ -47,24 +47,36 @@
         name,
         child}).
 
--record(declaration, {
-        type,
-        name,
-        default=?ERLCFG_SCHEMA_NIL}).
-
--record(cons, {
-        head,
-        tail=nil}).
-
 -record(validator, {
         type,
         test
     }).
 
+-record(attrs, {
+        default=?ERLCFG_SCHEMA_NIL,
+        min,
+        max,
+        unique=true,
+        optional=false,
+        null}).
+
+-record(declaration, {
+        type,
+        name,
+        attrs = #attrs{},
+        validator=#validator{}}).
+
+-record(macro, {name}).
+-record(env,   {name}).
+
+-record(cons, {
+        head,
+        tail=nil}).
+
 -define(DEFAULT_TYPE_MAP, [
-        {int, #validator{type=int, test=fun is_integer/1}},
-        {float, #validator{type=float, test=fun is_float/1}},
-        {atom, #validator{type=atom, test=fun is_atom/1}},
+        {int,    #validator{type=int,    test=fun is_integer/1}},
+        {float,  #validator{type=float,  test=fun is_float/1}},
+        {atom,   #validator{type=atom,   test=fun is_atom/1}},
         {string, #validator{type=string, test=fun is_binary/1}},
-        {bool, #validator{type=bool, test=fun is_boolean/1}}
+        {bool,   #validator{type=bool,   test=fun is_boolean/1}}
     ]).
